@@ -2,7 +2,6 @@
 
 A beautiful, responsive React-based personal finance tracker with real-time data visualization and persistent storage.
 
-![Dashboard Preview](./screenshot.png)
 
 ## ✨ Features
 
