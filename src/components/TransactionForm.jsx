@@ -13,6 +13,7 @@ const CATEGORIES = [
 function TransactionForm({ onAddTransaction }) {
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [category, setCategory] = useState('Other')
   const [type, setType] = useState('expense')
 
@@ -27,7 +28,7 @@ function TransactionForm({ onAddTransaction }) {
       amount: parseFloat(amount),
       category,
       type,
-      date: new Date().toISOString()
+      date: new Date(date).toISOString() // Changed this line
     }
 
     onAddTransaction(transaction)
@@ -35,6 +36,7 @@ function TransactionForm({ onAddTransaction }) {
     // Reset form
     setDescription('')
     setAmount('')
+    setDate(new Date().toISOString().split('T')[0])
     setCategory('Other')
     setType('expense')
   }
@@ -125,7 +127,19 @@ function TransactionForm({ onAddTransaction }) {
           ))}
         </select>
       </div>
-
+      {/* Date */}
+      <div className="mb-6">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          Date
+        </label>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          max={new Date().toISOString().split('T')[0]}
+          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white cursor-pointer"
+        />
+      </div>
       {/* Submit Button */}
       <button
         type="submit"

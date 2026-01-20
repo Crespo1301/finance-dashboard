@@ -1,3 +1,4 @@
+
 function TransactionList({ transactions, onDeleteTransaction }) {
   if (transactions.length === 0) {
     return (
