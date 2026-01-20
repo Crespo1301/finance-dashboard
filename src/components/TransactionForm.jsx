@@ -28,7 +28,7 @@ function TransactionForm({ onAddTransaction }) {
       amount: parseFloat(amount),
       category,
       type,
-      date: new Date(date).toISOString() // Changed this line
+      date: new Date(date).toISOString() 
     }
 
     onAddTransaction(transaction)
@@ -136,7 +136,6 @@ function TransactionForm({ onAddTransaction }) {
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          max={new Date().toISOString().split('T')[0]}
           className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white cursor-pointer"
         />
       </div>
