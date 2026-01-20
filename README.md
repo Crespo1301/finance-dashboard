@@ -98,7 +98,7 @@ Contributions, issues, and feature requests are welcome!
 
 **Carlos Crespo**
 - GitHub: [@Crespo1301](https://github.com/Crespo1301)
-- LinkedIn: [Carlos Crespo](https://linkedin.com/in/YOUR_PROFILE)
+- LinkedIn: [Carlos Crespo](https://www.linkedin.com/in/carlos-crespo-46608014a/)
 
 ---
 
