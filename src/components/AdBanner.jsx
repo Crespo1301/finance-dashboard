@@ -10,7 +10,7 @@ function AdBanner() {
   }, [])
 
   return (
-    <div className="my-4">
+    <div className="my-4 bg-gray-100 dark:bg-gray-700 rounded-lg p-2">
       <ins
         className="adsbygoogle"
         style={{ display: 'block' }}
