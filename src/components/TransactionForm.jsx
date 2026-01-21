@@ -1,9 +1,11 @@
 import { useState } from 'react'
 
 const CATEGORIES = [
-  'Food',
-  'Transportation',
   'Entertainment',
+  'Food',
+  'Housing',
+  'Health',
+  'Transportation',
   'Utilities',
   'Shopping',
   'Income',
