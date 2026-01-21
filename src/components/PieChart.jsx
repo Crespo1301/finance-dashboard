@@ -5,17 +5,17 @@ import { useCurrency } from '../context/CurrencyContext'
 ChartJS.register(ArcElement, Tooltip, Legend)
 
 const COLORS = [
-  '#ef4444', // red
-  '#f97316', // orange
-  '#eab308', // yellow
-  '#22c55e', // green
-  '#06b6d4', // cyan
-  '#3b82f6', // blue
-  '#8b5cf6', // purple
-  '#ec4899', // pink
+  '#ef4444',
+  '#f97316',
+  '#eab308',
+  '#22c55e',
+  '#06b6d4',
+  '#3b82f6',
+  '#8b5cf6',
+  '#ec4899',
 ]
 
-function PieChart({ transactions, darkMode }) {
+function PieChart({ transactions }) {
   const { formatAmount } = useCurrency()
   const expenses = transactions.filter((t) => t.type === 'expense')
 
@@ -27,16 +27,13 @@ function PieChart({ transactions, darkMode }) {
   const labels = Object.keys(categoryTotals)
   const dataValues = Object.values(categoryTotals)
 
-  // Use darkMode prop instead of checking DOM
-  const isDark = darkMode
-
   const data = {
     labels,
     datasets: [
       {
         data: dataValues,
         backgroundColor: COLORS.slice(0, labels.length),
-        borderColor: isDark ? '#1f2937' : '#ffffff',
+        borderColor: '#ffffff',
         borderWidth: 3,
       },
     ],
@@ -54,7 +51,7 @@ function PieChart({ transactions, darkMode }) {
             size: 12,
             weight: '500'
           },
-          color: isDark ? '#e5e7eb' : '#374151'
+          color: '#374151'
         }
       },
       tooltip: {
@@ -82,17 +79,17 @@ function PieChart({ transactions, darkMode }) {
 
   if (expenses.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center min-h-[400px] transition-colors duration-300">
+      <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100 flex flex-col items-center justify-center min-h-[400px]">
         <div className="text-6xl mb-4">📈</div>
-        <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-gray-100">Expenses by Category</h2>
-        <p className="text-gray-500 dark:text-gray-400 text-center">Add expense transactions to see the breakdown</p>
+        <h2 className="text-2xl font-bold mb-2 text-gray-800">Expenses by Category</h2>
+        <p className="text-gray-500 text-center">Add expense transactions to see the breakdown</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 transition-colors duration-300">
-      <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-gray-100">Expenses by Category</h2>
+    <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
+      <h2 className="text-xl font-bold mb-6 text-gray-800">Expenses by Category</h2>
       <div className="flex items-center justify-center">
         <Pie data={data} options={options} />
       </div>

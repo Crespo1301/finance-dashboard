@@ -81,7 +81,6 @@ Easy-to-use form for adding transactions with category selection.
 - [ ] Edit existing transactions
 - [ ] Export data to CSV
 - [ ] Budget goals and alerts
-- [ ] Dark mode theme
 - [ ] Multi-currency support
 - [ ] Filter and search transactions
 - [ ] Year-over-year comparisons

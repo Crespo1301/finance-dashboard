@@ -23,7 +23,7 @@ ChartJS.register(
   Filler
 )
 
-function LineChart({ transactions, darkMode }) {
+function LineChart({ transactions }) {
   const { formatAmount } = useCurrency()
 
   const monthlyData = transactions.reduce((acc, t) => {
@@ -89,9 +89,6 @@ function LineChart({ transactions, darkMode }) {
     ],
   }
 
-  // Use darkMode prop instead of checking DOM
-  const isDark = darkMode
-  
   const options = {
     responsive: true,
     maintainAspectRatio: true,
@@ -106,7 +103,7 @@ function LineChart({ transactions, darkMode }) {
           },
           usePointStyle: true,
           pointStyle: 'circle',
-          color: isDark ? '#e5e7eb' : '#374151'
+          color: '#374151'
         }
       },
       tooltip: {
@@ -130,7 +127,7 @@ function LineChart({ transactions, darkMode }) {
       y: {
         beginAtZero: true,
         grid: {
-          color: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+          color: 'rgba(0, 0, 0, 0.05)',
         },
         ticks: {
           callback: function(value) {
@@ -139,7 +136,7 @@ function LineChart({ transactions, darkMode }) {
           font: {
             size: 11
           },
-          color: isDark ? '#9ca3af' : '#6b7280'
+          color: '#6b7280'
         }
       },
       x: {
@@ -150,7 +147,7 @@ function LineChart({ transactions, darkMode }) {
           font: {
             size: 11
           },
-          color: isDark ? '#9ca3af' : '#6b7280'
+          color: '#6b7280'
         }
       }
     },
@@ -158,17 +155,17 @@ function LineChart({ transactions, darkMode }) {
 
   if (transactions.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center min-h-[400px] transition-colors duration-300">
+      <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100 flex flex-col items-center justify-center min-h-[400px]">
         <div className="text-6xl mb-4">📊</div>
-        <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-gray-100">Monthly Trend</h2>
-        <p className="text-gray-500 dark:text-gray-400 text-center">Track your income and expenses over time</p>
+        <h2 className="text-2xl font-bold mb-2 text-gray-800">Monthly Trend</h2>
+        <p className="text-gray-500 text-center">Track your income and expenses over time</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 transition-colors duration-300">
-      <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-gray-100">Monthly Trend</h2>
+    <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
+      <h2 className="text-xl font-bold mb-6 text-gray-800">Monthly Trend</h2>
       <div className="flex items-center justify-center">
         <Line data={data} options={options} />
       </div>

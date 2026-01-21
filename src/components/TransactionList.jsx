@@ -9,7 +9,6 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
   const [filterCategory, setFilterCategory] = useState('All')
   const [filterType, setFilterType] = useState('All')
 
-  // Filter transactions based on search and filters
   const filteredTransactions = transactions.filter(t => {
     const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = filterCategory === 'All' || t.category === filterCategory
@@ -17,29 +16,26 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
     return matchesSearch && matchesCategory && matchesType
   })
 
-  // No transactions at all
   if (transactions.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center min-h-[400px] transition-colors duration-300">
+      <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 flex flex-col items-center justify-center min-h-[400px]">
         <div className="text-6xl mb-4">📊</div>
-        <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-gray-100">No Transactions Yet</h2>
-        <p className="text-gray-500 dark:text-gray-400 text-center">Start by adding your first income or expense transaction</p>
+        <h2 className="text-2xl font-bold mb-2 text-gray-800">No Transactions Yet</h2>
+        <p className="text-gray-500 text-center">Start by adding your first income or expense transaction</p>
       </div>
     )
   }
 
-  // Has transactions but no matches from filter
   if (filteredTransactions.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+      <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Recent Transactions</h2>
-          <span className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-sm font-semibold">
+          <h2 className="text-2xl font-bold text-gray-800">Recent Transactions</h2>
+          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
             {transactions.length}
           </span>
         </div>
 
-        {/* Search and Filters */}
         <div className="mb-4 space-y-3">
           <div className="relative">
             <input
@@ -47,9 +43,9 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
               placeholder="Search transactions..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 pl-10 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+              className="w-full px-4 py-2 pl-10 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white text-gray-800 placeholder-gray-400"
             />
-            <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
@@ -58,7 +54,7 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-sm"
+              className="px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 bg-white text-gray-800 text-sm"
             >
               <option value="All">All Types</option>
               <option value="income">Income</option>
@@ -68,7 +64,7 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="px-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-sm"
+              className="px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 bg-white text-gray-800 text-sm"
             >
               <option value="All">All Categories</option>
               <option value="Entertainment">Entertainment</option>
@@ -88,7 +84,7 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
                 setFilterCategory('All')
                 setFilterType('All')
               }}
-              className="px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors"
+              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors"
             >
               Clear Filters
             </button>
@@ -97,23 +93,22 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
 
         <div className="text-center py-8">
           <div className="text-6xl mb-4">🔍</div>
-          <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-gray-100">No Matches Found</h3>
-          <p className="text-gray-500 dark:text-gray-400">Try adjusting your search or filters</p>
+          <h3 className="text-xl font-bold mb-2 text-gray-800">No Matches Found</h3>
+          <p className="text-gray-500">Try adjusting your search or filters</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+    <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Recent Transactions</h2>
-        <span className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-sm font-semibold">
+        <h2 className="text-2xl font-bold text-gray-800">Recent Transactions</h2>
+        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
           {transactions.length}
         </span>
       </div>
 
-      {/* Search and Filters */}
       <div className="mb-4 space-y-3">
         <div className="relative">
           <input
@@ -121,9 +116,9 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
             placeholder="Search transactions..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 pl-10 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+            className="w-full px-4 py-2 pl-10 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white text-gray-800 placeholder-gray-400"
           />
-          <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
@@ -132,7 +127,7 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-sm"
+            className="px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 bg-white text-gray-800 text-sm"
           >
             <option value="All">All Types</option>
             <option value="income">Income</option>
@@ -142,7 +137,7 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-sm"
+            className="px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 bg-white text-gray-800 text-sm"
           >
             <option value="All">All Categories</option>
             <option value="Entertainment">Entertainment</option>
@@ -163,7 +158,7 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
                 setFilterCategory('All')
                 setFilterType('All')
               }}
-              className="px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors"
+              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors"
             >
               Clear Filters
             </button>
@@ -171,21 +166,19 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
         </div>
       </div>
       
-      {/* Transaction List */}
       <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
         {filteredTransactions.map((transaction) => (
           <div
             key={transaction.id}
-            className="flex items-center justify-between p-4 border-2 border-gray-100 dark:border-gray-700 rounded-lg hover:border-gray-200 dark:hover:border-gray-600 hover:shadow-md transition-all group bg-white dark:bg-gray-800"
+            className="flex items-center justify-between p-4 border-2 border-gray-100 rounded-lg hover:border-gray-200 hover:shadow-md transition-all group bg-white"
           >
             {editingId === transaction.id ? (
-              // EDIT MODE
               <div className="flex-1 flex flex-col gap-2">
                 <input
                   type="text"
                   value={editForm.description}
                   onChange={(e) => setEditForm({...editForm, description: e.target.value})}
-                  className="px-3 py-2 border-2 border-blue-300 dark:border-blue-500 rounded-lg focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                  className="px-3 py-2 border-2 border-blue-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white text-gray-800"
                   placeholder="Description"
                 />
                 <div className="flex gap-2">
@@ -193,14 +186,14 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
                     type="number"
                     value={editForm.amount}
                     onChange={(e) => setEditForm({...editForm, amount: e.target.value})}
-                    className="flex-1 px-3 py-2 border-2 border-blue-300 dark:border-blue-500 rounded-lg focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                    className="flex-1 px-3 py-2 border-2 border-blue-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white text-gray-800"
                     placeholder="Amount"
                     step="0.01"
                   />
                   <select
                     value={editForm.category}
                     onChange={(e) => setEditForm({...editForm, category: e.target.value})}
-                    className="px-3 py-2 border-2 border-blue-300 dark:border-blue-500 rounded-lg focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                    className="px-3 py-2 border-2 border-blue-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white text-gray-800"
                   >
                     <option value="Entertainment">Entertainment</option>
                     <option value="Food">Food</option>
@@ -237,17 +230,16 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
                 </div>
               </div>
             ) : (
-              // VIEW MODE
               <>
                 <div className="flex-1 min-w-0 mr-4">
-                  <p className="font-semibold text-gray-800 dark:text-gray-100 truncate">
+                  <p className="font-semibold text-gray-800 truncate">
                     {transaction.description}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full">
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
                       {transaction.category}
                     </span>
-                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                    <span className="text-xs text-gray-400">
                       {new Date(transaction.date).toLocaleDateString()}
                     </span>
                   </div>
@@ -256,7 +248,7 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
                 <div className="flex items-center gap-3">
                   <span
                     className={`font-bold text-lg whitespace-nowrap ${
-                      transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                      transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                     }`}
                   >
                     {transaction.type === 'income' ? '+' : '-'}{formatAmount(transaction.amount)}
@@ -270,7 +262,7 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
                         category: transaction.category
                       })
                     }}
-                    className="text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 p-2 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                    className="text-blue-400 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                     aria-label="Edit transaction"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,7 +271,7 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
                   </button>
                   <button
                     onClick={() => onDeleteTransaction(transaction.id)}
-                    className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                    className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                     aria-label="Delete transaction"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
