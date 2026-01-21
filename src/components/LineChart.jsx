@@ -23,7 +23,7 @@ ChartJS.register(
   Filler
 )
 
-function LineChart({ transactions }) {
+function LineChart({ transactions, darkMode }) {
   const { formatAmount } = useCurrency()
 
   const monthlyData = transactions.reduce((acc, t) => {
@@ -89,7 +89,8 @@ function LineChart({ transactions }) {
     ],
   }
 
-  const isDark = document.documentElement.classList.contains('dark')
+  // Use darkMode prop instead of checking DOM
+  const isDark = darkMode
   
   const options = {
     responsive: true,

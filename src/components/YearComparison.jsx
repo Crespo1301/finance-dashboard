@@ -13,7 +13,7 @@ import { useCurrency } from '../context/CurrencyContext'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
-function YearComparison({ transactions }) {
+function YearComparison({ transactions, darkMode }) {
   const { formatAmount } = useCurrency()
 
   const yearlyData = useMemo(() => {
@@ -52,7 +52,8 @@ function YearComparison({ transactions }) {
     }
   })
 
-  const isDark = document.documentElement.classList.contains('dark')
+  // Use darkMode prop instead of checking DOM
+  const isDark = darkMode
 
   const chartData = {
     labels: years,

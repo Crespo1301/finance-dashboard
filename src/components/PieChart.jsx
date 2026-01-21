@@ -15,7 +15,7 @@ const COLORS = [
   '#ec4899', // pink
 ]
 
-function PieChart({ transactions }) {
+function PieChart({ transactions, darkMode }) {
   const { formatAmount } = useCurrency()
   const expenses = transactions.filter((t) => t.type === 'expense')
 
@@ -27,7 +27,8 @@ function PieChart({ transactions }) {
   const labels = Object.keys(categoryTotals)
   const dataValues = Object.values(categoryTotals)
 
-  const isDark = document.documentElement.classList.contains('dark')
+  // Use darkMode prop instead of checking DOM
+  const isDark = darkMode
 
   const data = {
     labels,

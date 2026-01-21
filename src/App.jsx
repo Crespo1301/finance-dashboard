@@ -12,7 +12,7 @@ import BudgetManager from './components/BudgetManager'
 import YearComparison from './components/YearComparison'
 import { useCurrency } from './context/CurrencyContext'
 
-function Dashboard() {
+function Dashboard({ darkMode }) {
   const { formatAmount } = useCurrency()
   
   const [transactions, setTransactions] = useState(() => {
@@ -112,10 +112,10 @@ function Dashboard() {
           <Summary transactions={transactions} />
         </div>
 
-        {/* Charts */}
+        {/* Charts - Pass darkMode prop */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8 lg:mb-10">
-          <PieChart transactions={transactions} />
-          <LineChart transactions={transactions} />
+          <PieChart transactions={transactions} darkMode={darkMode} />
+          <LineChart transactions={transactions} darkMode={darkMode} />
         </div>
 
         {/* Budget Manager */}
@@ -127,9 +127,9 @@ function Dashboard() {
           />
         </div>
 
-        {/* Year-over-Year Comparison */}
+        {/* Year-over-Year Comparison - Pass darkMode prop */}
         <div className="mb-6 sm:mb-8 lg:mb-10">
-          <YearComparison transactions={transactions} />
+          <YearComparison transactions={transactions} darkMode={darkMode} />
         </div>
 
         {/* Form and List */}
@@ -173,7 +173,8 @@ function App() {
       
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          {/* Pass darkMode to Dashboard */}
+          <Route path="/" element={<Dashboard darkMode={darkMode} />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
         </Routes>
 
