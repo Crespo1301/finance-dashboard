@@ -6,6 +6,7 @@ import Summary from './components/Summary'
 import PieChart from './components/PieChart'
 import LineChart from './components/LineChart'
 import PrivacyPolicy from './components/PrivacyPolicy'
+import BudgetManager from './components/BudgetManager'
 
 function Dashboard() {
   const [transactions, setTransactions] = useState(() => {
@@ -17,6 +18,14 @@ function Dashboard() {
     localStorage.setItem('transactions', JSON.stringify(transactions))
   }, [transactions])
 
+  const [budgets, setBudgets] = useState(() => {
+  const saved = localStorage.getItem('budgets')
+  return saved ? JSON.parse(saved) : {}
+})
+
+useEffect(() => {
+  localStorage.setItem('budgets', JSON.stringify(budgets))
+}, [budgets])
 
   //Tranasaction handlers 
   const addTransaction = (transaction) => {
@@ -90,9 +99,6 @@ return (
         )}
       </div>
 
-
-
-
       {/* Summary Cards */}
       <div className="mb-6 sm:mb-8 lg:mb-10">
         <Summary transactions={transactions} />
@@ -103,6 +109,16 @@ return (
         <PieChart transactions={transactions} />
         <LineChart transactions={transactions} />
       </div>
+
+      {/* Budget Manager */}
+      <div className="mb-6 sm:mb-8 lg:mb-10">
+        <BudgetManager 
+          budgets={budgets} 
+          setBudgets={setBudgets} 
+          transactions={transactions} 
+        />
+      </div>
+
 
       {/* Form and List */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
