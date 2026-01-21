@@ -4,19 +4,27 @@ function CurrencySelector() {
   const { currency, setCurrency, currencies } = useCurrency()
 
   return (
-    <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-md border border-gray-200">
-      <span className="text-sm text-gray-600 font-medium">Currency:</span>
+    <div className="relative">
       <select
         value={currency}
         onChange={(e) => setCurrency(e.target.value)}
-        className="px-3 py-1.5 border-2 border-gray-200 rounded-lg bg-white text-sm font-medium text-gray-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+        className="appearance-none pl-4 pr-10 py-2.5 bg-neutral-100 hover:bg-neutral-200 rounded-full text-black text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 transition-colors duration-200"
       >
         {Object.entries(currencies).map(([code, { name, symbol }]) => (
           <option key={code} value={code}>
-            {symbol} {code} - {name}
+            {symbol} {code}
           </option>
         ))}
       </select>
+      <svg 
+        className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth={2} 
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+      </svg>
     </div>
   )
 }

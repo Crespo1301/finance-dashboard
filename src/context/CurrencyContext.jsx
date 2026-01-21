@@ -27,7 +27,7 @@ export function CurrencyProvider({ children }) {
     const fromRate = CURRENCIES[fromCurrency]?.rate || 1
     const convertedAmount = (amount / fromRate) * curr.rate
     
-    return `${curr.symbol}${convertedAmount.toFixed(2)}`
+    return `${curr.symbol}${convertedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   }
 
   const convertAmount = (amount, fromCurrency = 'USD') => {

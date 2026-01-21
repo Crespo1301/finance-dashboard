@@ -2,72 +2,102 @@ import { Link } from 'react-router-dom'
 
 function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-white p-4 sm:p-6 lg:p-10">
       <div className="max-w-2xl mx-auto">
         <Link 
           to="/" 
-          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-neutral-500 hover:text-black text-sm font-medium mb-8 transition-colors"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
           </svg>
           Back to Dashboard
         </Link>
         
-        <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-          <h1 className="text-3xl font-bold mb-4 text-gray-800">Privacy Policy</h1>
-          <p className="mb-6 text-gray-600">Last updated: January 2026</p>
+        <article className="prose prose-neutral max-w-none">
+          <h1 className="text-3xl sm:text-4xl font-semibold text-black tracking-tight mb-2">Privacy Policy</h1>
+          <p className="text-neutral-500 text-sm mb-8">Last updated: January 2026</p>
           
-          <h2 className="text-xl font-semibold mb-3 text-gray-800">Data Collection</h2>
-          <p className="mb-6 text-gray-600">
-            This application stores your financial transaction data locally in your browser 
-            using localStorage. This data never leaves your device and is not transmitted 
-            to any server. Your privacy is important to us, and we have designed this 
-            application with a privacy-first approach.
-          </p>
+          <section className="mb-8">
+            <h2 className="text-lg font-semibold text-black mb-3">Data Collection</h2>
+            <p className="text-neutral-600 leading-relaxed">
+              This application stores your financial transaction data locally in your browser 
+              using localStorage. This data never leaves your device and is not transmitted 
+              to any server. Your privacy is important to us, and we have designed this 
+              application with a privacy-first approach.
+            </p>
+          </section>
           
-          <h2 className="text-xl font-semibold mb-3 text-gray-800">Local Storage</h2>
-          <p className="mb-6 text-gray-600">
-            We store the following data locally on your device:
-          </p>
-          <ul className="list-disc list-inside mb-6 text-gray-600 space-y-1">
-            <li>Your transaction history (income and expenses)</li>
-            <li>Budget goals and settings</li>
-            <li>Your preferred currency</li>
-          </ul>
+          <section className="mb-8">
+            <h2 className="text-lg font-semibold text-black mb-3">Local Storage</h2>
+            <p className="text-neutral-600 leading-relaxed mb-4">
+              We store the following data locally on your device:
+            </p>
+            <ul className="space-y-2 text-neutral-600">
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-600 mt-2 flex-shrink-0"></span>
+                <span>Your transaction history (income and expenses)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-600 mt-2 flex-shrink-0"></span>
+                <span>Budget goals and settings</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-600 mt-2 flex-shrink-0"></span>
+                <span>Your preferred currency</span>
+              </li>
+            </ul>
+          </section>
           
-          <h2 className="text-xl font-semibold mb-3 text-gray-800">Advertising</h2>
-          <p className="mb-6 text-gray-600">
-            We use Google AdSense to display advertisements. Google may use cookies to 
-            serve ads based on your prior visits to this website or other websites. 
-            You can opt out of personalized advertising by visiting{' '}
-            <a 
-              href="https://www.google.com/settings/ads" 
-              className="text-blue-600 hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Google Ads Settings
-            </a>.
-          </p>
+          <section className="mb-8">
+            <h2 className="text-lg font-semibold text-black mb-3">Advertising</h2>
+            <p className="text-neutral-600 leading-relaxed">
+              We use Google AdSense to display advertisements. Google may use cookies to 
+              serve ads based on your prior visits to this website or other websites. 
+              You can opt out of personalized advertising by visiting{' '}
+              <a 
+                href="https://www.google.com/settings/ads" 
+                className="text-violet-600 hover:text-violet-700 underline underline-offset-2"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Google Ads Settings
+              </a>.
+            </p>
+          </section>
           
-          <h2 className="text-xl font-semibold mb-3 text-gray-800">Data Deletion</h2>
-          <p className="mb-6 text-gray-600">
-            You can delete all your data at any time by clearing your browser's localStorage 
-            for this site. This will remove all transactions, budgets, and preferences.
-          </p>
-          
-          <h2 className="text-xl font-semibold mb-3 text-gray-800">Contact</h2>
-          <p className="text-gray-600">
-            For questions about this privacy policy, contact:{' '}
-            <a 
-              href="mailto:Crespo1301@gmail.com" 
-              className="text-blue-600 hover:underline"
-            >
-              Crespo1301@gmail.com
-            </a>
-          </p>
-        </div>
+          <section className="mb-8">
+            <h2 className="text-lg font-semibold text-black mb-3">Data Deletion</h2>
+            <p className="text-neutral-600 leading-relaxed">
+              You can delete all your data at any time by clearing your browser's localStorage 
+              for this site. This will remove all transactions, budgets, and preferences.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-lg font-semibold text-black mb-3">Third-Party Services</h2>
+            <p className="text-neutral-600 leading-relaxed">
+              The only third-party service integrated into this application is Google AdSense 
+              for advertising purposes. We do not share any of your financial data with third parties.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-black mb-3">Contact</h2>
+            <p className="text-neutral-600 leading-relaxed">
+              If you have any questions about this Privacy Policy, you can contact us through 
+              GitHub at{' '}
+              <a 
+                href="https://github.com/Crespo1301" 
+                className="text-violet-600 hover:text-violet-700 underline underline-offset-2"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                @Crespo1301
+              </a>.
+            </p>
+          </section>
+        </article>
       </div>
     </div>
   )

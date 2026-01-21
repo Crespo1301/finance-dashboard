@@ -45,103 +45,110 @@ function TransactionForm({ onAddTransaction }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Add Transaction</h2>
+    <form onSubmit={handleSubmit} className="p-6 sm:p-8 rounded-2xl bg-neutral-50">
+      <h2 className="text-xl font-semibold text-black tracking-tight mb-6">Add Transaction</h2>
       
-      <div className="flex gap-3 mb-6">
-        <label className={`flex-1 flex items-center justify-center p-3 rounded-lg cursor-pointer transition-all ${
-          type === 'expense' 
-            ? 'bg-red-50 border-2 border-red-500 text-red-700' 
-            : 'bg-gray-50 border-2 border-gray-200 text-gray-600 hover:border-gray-300'
-        }`}>
-          <input
-            type="radio"
-            name="type"
-            value="expense"
-            checked={type === 'expense'}
-            onChange={(e) => setType(e.target.value)}
-            className="sr-only"
-          />
-          <span className="font-medium">Expense</span>
-        </label>
-        <label className={`flex-1 flex items-center justify-center p-3 rounded-lg cursor-pointer transition-all ${
-          type === 'income' 
-            ? 'bg-green-50 border-2 border-green-500 text-green-700' 
-            : 'bg-gray-50 border-2 border-gray-200 text-gray-600 hover:border-gray-300'
-        }`}>
-          <input
-            type="radio"
-            name="type"
-            value="income"
-            checked={type === 'income'}
-            onChange={(e) => setType(e.target.value)}
-            className="sr-only"
-          />
-          <span className="font-medium">Income</span>
-        </label>
+      {/* Transaction Type Toggle */}
+      <div className="flex gap-2 mb-6 p-1 bg-neutral-200 rounded-full">
+        <button
+          type="button"
+          onClick={() => setType('expense')}
+          className={`flex-1 py-2.5 px-4 rounded-full text-sm font-medium transition-all duration-200 ${
+            type === 'expense' 
+              ? 'bg-black text-white shadow-sm' 
+              : 'text-neutral-600 hover:text-black'
+          }`}
+        >
+          Expense
+        </button>
+        <button
+          type="button"
+          onClick={() => setType('income')}
+          className={`flex-1 py-2.5 px-4 rounded-full text-sm font-medium transition-all duration-200 ${
+            type === 'income' 
+              ? 'bg-black text-white shadow-sm' 
+              : 'text-neutral-600 hover:text-black'
+          }`}
+        >
+          Income
+        </button>
       </div>
 
+      {/* Description Input */}
       <div className="mb-5">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-neutral-600 mb-2">
           Description
         </label>
         <input
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white text-gray-800 placeholder-gray-400"
-          placeholder="e.g., Grocery shopping"
+          placeholder="What was this for?"
+          className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-xl text-black placeholder-neutral-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200"
+          required
         />
       </div>
 
+      {/* Amount Input */}
       <div className="mb-5">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-neutral-600 mb-2">
           Amount
         </label>
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">{getSymbol()}</span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 font-medium">
+            {getSymbol()}
+          </span>
           <input
             type="number"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white text-gray-800 placeholder-gray-400"
             placeholder="0.00"
+            className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-200 rounded-xl text-black placeholder-neutral-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200"
             step="0.01"
             min="0"
+            required
           />
         </div>
       </div>
 
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+      {/* Category Select */}
+      <div className="mb-5">
+        <label className="block text-sm font-medium text-neutral-600 mb-2">
           Category
         </label>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white text-gray-800 cursor-pointer"
-        >
-          {CATEGORIES.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-xl text-black appearance-none cursor-pointer focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200"
+          >
+            {CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+          <svg className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </div>
       </div>
 
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+      {/* Date Input */}
+      <div className="mb-8">
+        <label className="block text-sm font-medium text-neutral-600 mb-2">
           Date
         </label>
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white text-gray-800 cursor-pointer"
+          className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-xl text-black cursor-pointer focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200"
         />
       </div>
 
+      {/* Submit Button */}
       <button
         type="submit"
-        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+        className="w-full py-3.5 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl transition-colors duration-200 active:scale-[0.98]"
       >
         Add Transaction
       </button>

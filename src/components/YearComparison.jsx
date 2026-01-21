@@ -57,25 +57,25 @@ function YearComparison({ transactions }) {
       {
         label: 'Income',
         data: years.map(y => yearlyData[y].income),
-        backgroundColor: 'rgba(34, 197, 94, 0.7)',
-        borderColor: '#22c55e',
-        borderWidth: 2,
+        backgroundColor: '#000000',
+        borderColor: '#000000',
+        borderWidth: 0,
         borderRadius: 6,
       },
       {
         label: 'Expenses',
         data: years.map(y => yearlyData[y].expenses),
-        backgroundColor: 'rgba(239, 68, 68, 0.7)',
-        borderColor: '#ef4444',
-        borderWidth: 2,
+        backgroundColor: '#a3a3a3',
+        borderColor: '#a3a3a3',
+        borderWidth: 0,
         borderRadius: 6,
       },
       {
         label: 'Savings',
         data: years.map(y => yearlyData[y].income - yearlyData[y].expenses),
-        backgroundColor: 'rgba(59, 130, 246, 0.7)',
-        borderColor: '#3b82f6',
-        borderWidth: 2,
+        backgroundColor: '#7c3aed',
+        borderColor: '#7c3aed',
+        borderWidth: 0,
         borderRadius: 6,
       },
     ],
@@ -83,21 +83,38 @@ function YearComparison({ transactions }) {
 
   const options = {
     responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 3, // This controls height - higher number = shorter chart
     plugins: {
       legend: {
         position: 'bottom',
         labels: {
-          color: '#374151',
-          padding: 15,
+          color: '#525252',
+          padding: 20,
           font: {
+            family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
             size: 12,
             weight: '500'
-          }
+          },
+          usePointStyle: true,
+          pointStyle: 'rectRounded'
         }
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        padding: 12,
+        backgroundColor: '#000000',
+        titleColor: '#ffffff',
+        bodyColor: '#ffffff',
+        padding: 14,
+        cornerRadius: 12,
+        titleFont: {
+          family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+          size: 13,
+          weight: '600'
+        },
+        bodyFont: {
+          family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+          size: 13
+        },
         callbacks: {
           label: (context) => `${context.dataset.label}: ${formatAmount(context.parsed.y)}`
         }
@@ -106,81 +123,105 @@ function YearComparison({ transactions }) {
     scales: {
       y: {
         beginAtZero: true,
+        border: {
+          display: false
+        },
         grid: {
-          color: 'rgba(0, 0, 0, 0.05)',
+          color: 'rgba(0, 0, 0, 0.04)',
+          drawTicks: false
         },
         ticks: {
           callback: (value) => formatAmount(value),
-          color: '#6b7280'
+          color: '#a3a3a3',
+          font: {
+            family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+            size: 11
+          },
+          padding: 8
         }
       },
       x: {
+        border: {
+          display: false
+        },
         grid: {
           display: false
         },
         ticks: {
-          color: '#6b7280'
+          color: '#a3a3a3',
+          font: {
+            family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+            size: 11
+          },
+          padding: 8
         }
       }
     }
   }
 
   const ChangeIndicator = ({ value, isPercentage = true }) => {
-    if (value === null) return <span className="text-gray-400">—</span>
+    if (value === null) return <span className="text-neutral-300">-</span>
     const isPositive = value > 0
-    const color = isPositive ? 'text-green-600' : 'text-red-600'
-    const arrow = isPositive ? '↑' : '↓'
     
     return (
-      <span className={`font-semibold ${color}`}>
-        {arrow} {isPercentage ? `${Math.abs(value).toFixed(1)}%` : formatAmount(Math.abs(value))}
+      <span className={`inline-flex items-center gap-1 font-medium ${isPositive ? 'text-black' : 'text-neutral-500'}`}>
+        <svg className={`w-3 h-3 ${isPositive ? '' : 'rotate-180'}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
+        </svg>
+        {isPercentage ? `${Math.abs(value).toFixed(1)}%` : formatAmount(Math.abs(value))}
       </span>
     )
   }
 
   if (years.length === 0) {
     return (
-      <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 text-center">
-        <div className="text-6xl mb-4">📅</div>
-        <h2 className="text-2xl font-bold mb-2 text-gray-800">Year-over-Year Comparison</h2>
-        <p className="text-gray-500">Add transactions to see yearly comparisons</p>
+      <div className="p-6 sm:p-8 rounded-2xl bg-neutral-50 flex flex-col items-center justify-center min-h-[300px]">
+        <div className="w-16 h-16 rounded-full bg-neutral-200 flex items-center justify-center mb-4">
+          <svg className="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-semibold text-black mb-2">Year Comparison</h2>
+        <p className="text-neutral-500 text-sm text-center">Add transactions to compare yearly performance</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Year-over-Year Comparison</h2>
+    <div className="p-6 sm:p-8 rounded-2xl bg-neutral-50">
+      <h2 className="text-xl font-semibold text-black tracking-tight mb-6">Year Comparison</h2>
       
+      {/* Chart */}
       <div className="mb-8">
         <Bar data={chartData} options={options} />
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+      {/* Data Table */}
+      <div className="overflow-x-auto -mx-2">
+        <table className="w-full text-sm min-w-[600px]">
           <thead>
-            <tr className="border-b-2 border-gray-200">
-              <th className="text-left py-3 px-2 font-semibold text-gray-700">Year</th>
-              <th className="text-right py-3 px-2 font-semibold text-gray-700">Income</th>
-              <th className="text-right py-3 px-2 font-semibold text-gray-700">YoY</th>
-              <th className="text-right py-3 px-2 font-semibold text-gray-700">Expenses</th>
-              <th className="text-right py-3 px-2 font-semibold text-gray-700">YoY</th>
-              <th className="text-right py-3 px-2 font-semibold text-gray-700">Savings</th>
-              <th className="text-right py-3 px-2 font-semibold text-gray-700">Change</th>
+            <tr className="border-b border-neutral-200">
+              <th className="text-left py-3 px-3 font-medium text-neutral-500">Year</th>
+              <th className="text-right py-3 px-3 font-medium text-neutral-500">Income</th>
+              <th className="text-right py-3 px-3 font-medium text-neutral-500">YoY</th>
+              <th className="text-right py-3 px-3 font-medium text-neutral-500">Expenses</th>
+              <th className="text-right py-3 px-3 font-medium text-neutral-500">YoY</th>
+              <th className="text-right py-3 px-3 font-medium text-neutral-500">Savings</th>
+              <th className="text-right py-3 px-3 font-medium text-neutral-500">Change</th>
             </tr>
           </thead>
           <tbody>
             {comparisons.map((row) => (
-              <tr key={row.year} className="border-b border-gray-100 hover:bg-gray-50">
-                <td className="py-3 px-2 font-semibold text-gray-800">{row.year}</td>
-                <td className="py-3 px-2 text-right text-green-600">{formatAmount(row.income)}</td>
-                <td className="py-3 px-2 text-right"><ChangeIndicator value={row.incomeChange} /></td>
-                <td className="py-3 px-2 text-right text-red-600">{formatAmount(row.expenses)}</td>
-                <td className="py-3 px-2 text-right"><ChangeIndicator value={row.expenseChange} /></td>
-                <td className={`py-3 px-2 text-right font-semibold ${row.savings >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
-                  {formatAmount(row.savings)}
+              <tr key={row.year} className="border-b border-neutral-100 hover:bg-white transition-colors">
+                <td className="py-3 px-3 font-semibold text-black">{row.year}</td>
+                <td className="py-3 px-3 text-right text-black tabular-nums">{formatAmount(row.income)}</td>
+                <td className="py-3 px-3 text-right"><ChangeIndicator value={row.incomeChange} /></td>
+                <td className="py-3 px-3 text-right text-neutral-600 tabular-nums">{formatAmount(row.expenses)}</td>
+                <td className="py-3 px-3 text-right"><ChangeIndicator value={row.expenseChange} /></td>
+                <td className={`py-3 px-3 text-right font-semibold tabular-nums ${row.savings >= 0 ? 'text-violet-600' : 'text-black'}`}>
+                  {row.savings < 0 && '-'}{formatAmount(Math.abs(row.savings))}
                 </td>
-                <td className="py-3 px-2 text-right"><ChangeIndicator value={row.savingsChange} isPercentage={false} /></td>
+                <td className="py-3 px-3 text-right"><ChangeIndicator value={row.savingsChange} isPercentage={false} /></td>
               </tr>
             ))}
           </tbody>

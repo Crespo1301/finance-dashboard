@@ -4,15 +4,16 @@ import { useCurrency } from '../context/CurrencyContext'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
+// Monochromatic palette with purple accent
 const COLORS = [
-  '#ef4444',
-  '#f97316',
-  '#eab308',
-  '#22c55e',
-  '#06b6d4',
-  '#3b82f6',
-  '#8b5cf6',
-  '#ec4899',
+  '#7c3aed', // violet-600 - primary accent
+  '#1a1a1a', // near black
+  '#404040', // neutral-700
+  '#525252', // neutral-600
+  '#737373', // neutral-500
+  '#a3a3a3', // neutral-400
+  '#d4d4d4', // neutral-300
+  '#e5e5e5', // neutral-200
 ]
 
 function PieChart({ transactions }) {
@@ -24,8 +25,9 @@ function PieChart({ transactions }) {
     return acc
   }, {})
 
-  const labels = Object.keys(categoryTotals)
-  const dataValues = Object.values(categoryTotals)
+  const sortedEntries = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])
+  const labels = sortedEntries.map(([label]) => label)
+  const dataValues = sortedEntries.map(([, value]) => value)
 
   const data = {
     labels,
@@ -35,6 +37,7 @@ function PieChart({ transactions }) {
         backgroundColor: COLORS.slice(0, labels.length),
         borderColor: '#ffffff',
         borderWidth: 3,
+        hoverOffset: 8,
       },
     ],
   }
@@ -46,22 +49,30 @@ function PieChart({ transactions }) {
       legend: {
         position: 'bottom',
         labels: {
-          padding: 15,
+          padding: 20,
           font: {
+            family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
             size: 12,
             weight: '500'
           },
-          color: '#374151'
+          color: '#ffffff',
+          usePointStyle: true,
+          pointStyle: 'circle',
         }
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        padding: 12,
+        backgroundColor: '#000000',
+        titleColor: '#ffffff',
+        bodyColor: '#ffffff',
+        padding: 14,
+        cornerRadius: 12,
         titleFont: {
-          size: 14,
-          weight: 'bold'
+          family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+          size: 13,
+          weight: '600'
         },
         bodyFont: {
+          family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
           size: 13
         },
         callbacks: {
@@ -79,19 +90,26 @@ function PieChart({ transactions }) {
 
   if (expenses.length === 0) {
     return (
-      <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100 flex flex-col items-center justify-center min-h-[400px]">
-        <div className="text-6xl mb-4">📈</div>
-        <h2 className="text-2xl font-bold mb-2 text-gray-800">Expenses by Category</h2>
-        <p className="text-gray-500 text-center">Add expense transactions to see the breakdown</p>
+      <div className="p-6 sm:p-8 rounded-2xl bg-neutral-50 flex flex-col items-center justify-center min-h-[400px]">
+        <div className="w-16 h-16 rounded-full bg-neutral-200 flex items-center justify-center mb-4">
+          <svg className="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-semibold text-black mb-2">Expense Breakdown</h2>
+        <p className="text-neutral-500 text-sm text-center">Add expenses to see category distribution</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
-      <h2 className="text-xl font-bold mb-6 text-gray-800">Expenses by Category</h2>
+    <div className="p-6 sm:p-8 rounded-2xl bg-neutral-700">
+      <h2 className="text-xl font-semibold text-neutral-200 tracking-tight mb-6">Expense Breakdown</h2>
       <div className="flex items-center justify-center">
-        <Pie data={data} options={options} />
+        <div className="w-full max-w-[320px]">
+          <Pie data={data} options={options} />
+        </div>
       </div>
     </div>
   )

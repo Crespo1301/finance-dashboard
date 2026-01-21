@@ -72,63 +72,69 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-neutral-950 p-4 sm:p-6 lg:p-10">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8 sm:mb-12">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Personal Finance Dashboard
+        {/* Header */}
+        <header className="mb-12 sm:mb-16">
+         
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-white text-center mb-3">
+            Finance
           </h1>
-
-          <p className="text-center text-gray-600 text-sm sm:text-base">
-            Track your income and expenses with ease
+          <p className="text-center text-neutral-400 text-base sm:text-lg font-normal tracking-wide">
+            Track your income and expenses
           </p>
 
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mt-6">
             <CurrencySelector />
             
             {transactions.length > 0 && (
               <button
                 onClick={exportToCSV}
-                className="bg-white px-6 py-2 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2 text-gray-700 font-medium border border-gray-200"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-white text-sm font-medium transition-colors duration-200"
+              > 
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                 </svg>
                 Export CSV
               </button>
             )}
           </div>
-        </div>
+        </header>
 
-        <div className="mb-6 sm:mb-8 lg:mb-10">
+        {/* Summary Cards */}
+        <section className="mb-12 sm:mb-16">
           <Summary transactions={transactions} />
-        </div>
+        </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8 lg:mb-10">
+        {/* Charts */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-12 sm:mb-16">
           <PieChart transactions={transactions} />
           <LineChart transactions={transactions} />
-        </div>
+        </section>
 
-        <div className="mb-6 sm:mb-8 lg:mb-10">
+        {/* Budget Manager */}
+        <section className="mb-12 sm:mb-16">
           <BudgetManager 
             budgets={budgets} 
             setBudgets={setBudgets} 
             transactions={transactions} 
           />
-        </div>
+        </section>
 
-        <div className="mb-6 sm:mb-8 lg:mb-10">
+        {/* Year Comparison */}
+        <section className="mb-12 sm:mb-16">
           <YearComparison transactions={transactions} />
-        </div>
+        </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        {/* Transaction Form & List */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           <TransactionForm onAddTransaction={addTransaction} />
           <TransactionList
             transactions={transactions}
             onDeleteTransaction={deleteTransaction}
             onEditTransaction={editTransaction}
           />
-        </div>
+        </section>
       </div>
     </div>
   )
@@ -137,14 +143,17 @@ function Dashboard() {
 function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen bg-neutral-950">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
         </Routes>
 
-        <footer className="py-8 text-center text-gray-500 text-sm">
-          <Link to="/privacy" className="hover:text-gray-700 transition-colors">
+        <footer className="py-10 text-center border-t border-neutral-800">
+          <Link 
+            to="/privacy" 
+            className="text-neutral-500 hover:text-white text-sm font-normal transition-colors duration-200"
+          >
             Privacy Policy
           </Link>
         </footer>
