@@ -62,7 +62,7 @@ function TransactionForm({ onAddTransaction }) {
             onChange={(e) => setType(e.target.value)}
             className="sr-only"
           />
-          <span className="font-medium">💸 Expense</span>
+          <span className="font-medium">Expense</span>
         </label>
         <label className={`flex-1 flex items-center justify-center p-3 rounded-lg cursor-pointer transition-all ${
           type === 'income' 
@@ -77,7 +77,7 @@ function TransactionForm({ onAddTransaction }) {
             onChange={(e) => setType(e.target.value)}
             className="sr-only"
           />
-          <span className="font-medium">💰 Income</span>
+          <span className="font-medium">Income</span>
         </label>
       </div>
 
