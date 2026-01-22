@@ -6,7 +6,7 @@ A beautiful, responsive React-based personal finance tracker with real-time data
 - Website Link: [Financial Dashboard](https://finance-dashboard-seven-gamma.vercel.app/)
 
 ## Demo
-![Dashboard - Gif]()
+![Dashboard - Gif](https://github.com/Crespo1301/finance-dashboard/blob/main/public/finance.gif)
 
 ## ✨ Features
 
