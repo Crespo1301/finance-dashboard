@@ -69,13 +69,13 @@ function BudgetManager({ budgets, setBudgets, transactions }) {
     <div className="p-6 sm:p-8 rounded-2xl bg-neutral-700">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <h2 className="text-xl font-semibold text-neutral-200 tracking-tight">Budget Goals</h2>
-        <span className="text-sm text-neutral-500 px-3 py-1 bg-neutral-200 rounded-full border border-neutral-200">
+        <span className="text-sm text-neutral-200 px-3 py-1 bg-neutral-500 rounded-full border border-neutral-700">
           {currentMonthName}
         </span>
       </div>
       
       {/* Add Budget Form */}
-      <form onSubmit={handleSetBudget} className="mb-8 p-4 bg-neutral-800 rounded-xl border border-neutral-900">
+      <form onSubmit={handleSetBudget} className="mb-3 p-4 bg-neutral-700 rounded-xl border border-neutral-700">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <select
@@ -105,7 +105,7 @@ function BudgetManager({ budgets, setBudgets, transactions }) {
           </div>
           <button
             type="submit"
-            className="px-6 py-2.5 bg-black hover:bg-neutral-800 text-white text-sm font-medium rounded-lg transition-colors"
+            className="px-6 py-2.5 bg-black hover:bg-neutral-800 text-neutral-200 text-sm font-medium rounded-lg transition-colors"
           >
             Set Budget
           </button>
@@ -116,12 +116,12 @@ function BudgetManager({ budgets, setBudgets, transactions }) {
       <div className="space-y-3">
         {Object.keys(budgets).length === 0 ? (
           <div className="text-center py-10">
-            <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-neutral-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <div className="w-12 h-12 rounded-full bg-neutral-500 flex items-center justify-center mx-auto mb-3">
+              <svg className="w-6 h-6 text-neutral-200" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
               </svg>
             </div>
-            <p className="text-neutral-500 text-sm">No budgets set yet</p>
+            <p className="text-neutral-400 text-sm">No budgets set yet</p>
           </div>
         ) : (
           Object.entries(budgets).map(([category, budget]) => {
@@ -133,7 +133,7 @@ function BudgetManager({ budgets, setBudgets, transactions }) {
               <div key={category} className="p-4 bg-neutral-800 rounded-xl border border-neutral-700">
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h3 className="font-medium text-neutral-200">{category}</h3>
+                    <h3 className="font-bold text-neutral-200">{category}</h3>
                     <p className="text-sm text-neutral-500">
                       {formatAmount(spent)} of {formatAmount(budget)}
                     </p>
@@ -144,7 +144,7 @@ function BudgetManager({ budgets, setBudgets, transactions }) {
                     </span>
                     <button
                       onClick={() => handleRemoveBudget(category)}
-                      className="p-1.5 text-neutral-400 hover:text-black hover:bg-neutral-100 rounded-lg transition-colors"
+                      className="p-1.5 text-neutral-400 hover:text-black hover:bg-neutral-300 rounded-lg transition-colors"
                       aria-label="Remove budget"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">

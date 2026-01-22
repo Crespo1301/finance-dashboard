@@ -62,28 +62,28 @@ function LineChart({ transactions }) {
         label: 'Income',
         data: incomeData,
         borderColor: '#000000',
-        backgroundColor: 'rgba(0, 0, 0, 0.03)',
-        borderWidth: 2.5,
+        backgroundColor: '#404040',
+        borderWidth: 3,
         tension: 0.4,
         fill: true,
         pointRadius: 0,
         pointHoverRadius: 6,
         pointHoverBackgroundColor: '#000000',
-        pointHoverBorderColor: '#ffffff',
+        pointHoverBorderColor: '#e5e5e5',
         pointHoverBorderWidth: 2,
       },
       {
         label: 'Expenses',
         data: expenseData,
         borderColor: '#7c3aed',
-        backgroundColor: 'rgba(124, 58, 237, 0.05)',
-        borderWidth: 2.5,
+        backgroundColor: '#404040',
+        borderWidth: 3,
         tension: 0.4,
         fill: true,
         pointRadius: 0,
         pointHoverRadius: 6,
         pointHoverBackgroundColor: '#7c3aed',
-        pointHoverBorderColor: '#ffffff',
+        pointHoverBorderColor: '#e5e5e5',
         pointHoverBorderWidth: 2,
       },
     ],
@@ -108,13 +108,13 @@ function LineChart({ transactions }) {
           },
           usePointStyle: true,
           pointStyle: 'circle',
-          color: '#525252'
+          color: '#e5e5e5'
         }
       },
       tooltip: {
         backgroundColor: '#000000',
-        titleColor: '#ffffff',
-        bodyColor: '#ffffff',
+        titleColor: '#e5e5e5',
+        bodyColor: '#e5e5e5',
         padding: 14,
         cornerRadius: 12,
         titleFont: {
@@ -137,15 +137,15 @@ function LineChart({ transactions }) {
       y: {
         beginAtZero: true,
         border: {
-          display: false
+          color: '#a3a3a3',
         },
         grid: {
-          color: 'rgba(0, 0, 0, 0.04)',
+          color: '#737373',
           drawTicks: false
         },
         ticks: {
           callback: (value) => formatAmount(value),
-          color: '#a3a3a3',
+          color: '#d4d4d4',
           font: {
             family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
             size: 11
@@ -155,13 +155,14 @@ function LineChart({ transactions }) {
       },
       x: {
         border: {
-          display: false
+          color: '#a3a3a3',
         },
         grid: {
-          display: false
+          color: '#737373',
+          drawTicks: false
         },
         ticks: {
-          color: '#a3a3a3',
+          color: '#d4d4d4',
           font: {
             family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
             size: 11
@@ -174,21 +175,21 @@ function LineChart({ transactions }) {
 
   if (transactions.length === 0) {
     return (
-      <div className="p-6 sm:p-8 rounded-2xl bg-neutral-50 flex flex-col items-center justify-center min-h-[400px]">
-        <div className="w-16 h-16 rounded-full bg-neutral-200 flex items-center justify-center mb-4">
-          <svg className="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <div className="p-6 sm:p-8 rounded-2xl bg-neutral-700 flex flex-col items-center justify-center min-h-[400px]">
+        <div className="w-16 h-16 rounded-full bg-neutral-500 flex items-center justify-center mb-4">
+          <svg className="w-8 h-8 text-neutral-200" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
           </svg>
         </div>
-        <h2 className="text-xl font-semibold text-black mb-2">Monthly Trends</h2>
-        <p className="text-neutral-500 text-sm text-center">Add transactions to see monthly patterns</p>
+        <h2 className="text-xl font-semibold text-neutral-200 mb-2">Monthly Trends</h2>
+        <p className="text-neutral-400 text-sm text-center">Add transactions to see monthly patterns</p>
       </div>
     )
   }
 
   return (
-    <div className="p-6 sm:p-8 rounded-2xl bg-neutral-50">
-      <h2 className="text-xl font-semibold text-black tracking-tight mb-6">Monthly Trends</h2>
+    <div className="p-6 sm:p-8 rounded-2xl bg-neutral-700">
+      <h2 className="text-xl font-semibold text-neutral-200 tracking-tight mb-6">Monthly Trends</h2>
       <div>
         <Line data={data} options={options} />
       </div>

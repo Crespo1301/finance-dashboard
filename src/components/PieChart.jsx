@@ -35,7 +35,7 @@ function PieChart({ transactions }) {
       {
         data: dataValues,
         backgroundColor: COLORS.slice(0, labels.length),
-        borderColor: '#ffffff',
+        borderColor: '#404040',
         borderWidth: 3,
         hoverOffset: 8,
       },
@@ -55,15 +55,15 @@ function PieChart({ transactions }) {
             size: 12,
             weight: '500'
           },
-          color: '#ffffff',
+          color: '#e5e5e5',
           usePointStyle: true,
           pointStyle: 'circle',
         }
       },
       tooltip: {
         backgroundColor: '#000000',
-        titleColor: '#ffffff',
-        bodyColor: '#ffffff',
+        titleColor: '#e5e5e5',
+        bodyColor: '#e5e5e5',
         padding: 14,
         cornerRadius: 12,
         titleFont: {
@@ -90,15 +90,15 @@ function PieChart({ transactions }) {
 
   if (expenses.length === 0) {
     return (
-      <div className="p-6 sm:p-8 rounded-2xl bg-neutral-50 flex flex-col items-center justify-center min-h-[400px]">
-        <div className="w-16 h-16 rounded-full bg-neutral-200 flex items-center justify-center mb-4">
-          <svg className="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <div className="p-6 sm:p-8 rounded-2xl bg-neutral-700 flex flex-col items-center justify-center min-h-[400px]">
+        <div className="w-16 h-16 rounded-full bg-neutral-500 flex items-center justify-center mb-4">
+          <svg className="w-8 h-8 text-neutral-200" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
           </svg>
         </div>
-        <h2 className="text-xl font-semibold text-black mb-2">Expense Breakdown</h2>
-        <p className="text-neutral-500 text-sm text-center">Add expenses to see category distribution</p>
+        <h2 className="text-xl font-semibold text-neutral-200 mb-2">Expense Breakdown</h2>
+        <p className="text-neutral-400 text-sm text-center">Add expenses to see category distribution</p>
       </div>
     )
   }

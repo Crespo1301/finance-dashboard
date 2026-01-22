@@ -89,7 +89,7 @@ function YearComparison({ transactions }) {
       legend: {
         position: 'bottom',
         labels: {
-          color: '#525252',
+          color: '#e5e5e5',
           padding: 20,
           font: {
             family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
@@ -124,15 +124,15 @@ function YearComparison({ transactions }) {
       y: {
         beginAtZero: true,
         border: {
-          display: false
+          color: '#737373',
         },
         grid: {
-          color: 'rgba(0, 0, 0, 0.04)',
+          color: '#737373',
           drawTicks: false
         },
         ticks: {
           callback: (value) => formatAmount(value),
-          color: '#a3a3a3',
+          color: '#e5e5e5',
           font: {
             family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
             size: 11
@@ -142,13 +142,13 @@ function YearComparison({ transactions }) {
       },
       x: {
         border: {
-          display: false
+          color: '#737373',
         },
         grid: {
-          display: false
+          display : false,
         },
         ticks: {
-          color: '#a3a3a3',
+          color: '#e5e5e5',
           font: {
             family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
             size: 11
@@ -175,21 +175,21 @@ function YearComparison({ transactions }) {
 
   if (years.length === 0) {
     return (
-      <div className="p-6 sm:p-8 rounded-2xl bg-neutral-50 flex flex-col items-center justify-center min-h-[300px]">
-        <div className="w-16 h-16 rounded-full bg-neutral-200 flex items-center justify-center mb-4">
-          <svg className="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <div className="p-6 sm:p-8 rounded-2xl bg-neutral-700 flex flex-col items-center justify-center min-h-[300px]">
+        <div className="w-16 h-16 rounded-full bg-neutral-500 flex items-center justify-center mb-4">
+          <svg className="w-8 h-8 text-neutral-200" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
           </svg>
         </div>
-        <h2 className="text-xl font-semibold text-black mb-2">Year Comparison</h2>
-        <p className="text-neutral-500 text-sm text-center">Add transactions to compare yearly performance</p>
+        <h2 className="text-xl font-semibold text-neutral-200 mb-2">Year Comparison</h2>
+        <p className="text-neutral-400 text-sm text-center">Add transactions to compare yearly performance</p>
       </div>
     )
   }
 
   return (
-    <div className="p-6 sm:p-8 rounded-2xl bg-neutral-50">
-      <h2 className="text-xl font-semibold text-black tracking-tight mb-6">Year Comparison</h2>
+    <div className="p-6 sm:p-8 rounded-2xl bg-neutral-700">
+      <h2 className="text-xl font-semibold text-neutral-200 tracking-tight mb-6">Year Comparison</h2>
       
       {/* Chart */}
       <div className="mb-8">
@@ -201,22 +201,22 @@ function YearComparison({ transactions }) {
         <table className="w-full text-sm min-w-[600px]">
           <thead>
             <tr className="border-b border-neutral-200">
-              <th className="text-left py-3 px-3 font-medium text-neutral-500">Year</th>
-              <th className="text-right py-3 px-3 font-medium text-neutral-500">Income</th>
-              <th className="text-right py-3 px-3 font-medium text-neutral-500">YoY</th>
-              <th className="text-right py-3 px-3 font-medium text-neutral-500">Expenses</th>
-              <th className="text-right py-3 px-3 font-medium text-neutral-500">YoY</th>
-              <th className="text-right py-3 px-3 font-medium text-neutral-500">Savings</th>
-              <th className="text-right py-3 px-3 font-medium text-neutral-500">Change</th>
+              <th className="text-left py-3 px-3 font-medium text-neutral-200">Year</th>
+              <th className="text-right py-3 px-3 font-medium text-neutral-200">Income</th>
+              <th className="text-right py-3 px-3 font-medium text-neutral-200">YoY</th>
+              <th className="text-right py-3 px-3 font-medium text-neutral-200">Expenses</th>
+              <th className="text-right py-3 px-3 font-medium text-neutral-200">YoY</th>
+              <th className="text-right py-3 px-3 font-medium text-neutral-200">Savings</th>
+              <th className="text-right py-3 px-3 font-medium text-neutral-200">Change</th>
             </tr>
           </thead>
           <tbody>
             {comparisons.map((row) => (
-              <tr key={row.year} className="border-b border-neutral-100 hover:bg-white transition-colors">
-                <td className="py-3 px-3 font-semibold text-black">{row.year}</td>
-                <td className="py-3 px-3 text-right text-black tabular-nums">{formatAmount(row.income)}</td>
+              <tr key={row.year} className="border-b border-neutral-100 hover:bg-neutral-800 transition-colors">
+                <td className="py-3 px-3 font-semibold text-neutral-300">{row.year}</td>
+                <td className="py-3 px-3 text-right text-neutral-300 tabular-nums">{formatAmount(row.income)}</td>
                 <td className="py-3 px-3 text-right"><ChangeIndicator value={row.incomeChange} /></td>
-                <td className="py-3 px-3 text-right text-neutral-600 tabular-nums">{formatAmount(row.expenses)}</td>
+                <td className="py-3 px-3 text-right text-neutral-200 tabular-nums">{formatAmount(row.expenses)}</td>
                 <td className="py-3 px-3 text-right"><ChangeIndicator value={row.expenseChange} /></td>
                 <td className={`py-3 px-3 text-right font-semibold tabular-nums ${row.savings >= 0 ? 'text-violet-600' : 'text-black'}`}>
                   {row.savings < 0 && '-'}{formatAmount(Math.abs(row.savings))}
