@@ -148,14 +148,34 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
         </Routes>
+        
 
+        // Footer
         <footer className="py-10 text-center border-t border-neutral-800">
-          <Link 
-            to="/privacy" 
-            className="text-neutral-500 hover:text-white text-sm font-normal transition-colors duration-200"
-          >
-            Privacy Policy
-          </Link>
+         
+          //Links
+          <div className="flex flex-row gap-4 flex-col sm:flex-row justify-center items-center">
+            <Link to="/privacy" className="text-neutral-500 hover:text-white text-sm font-normal transition-colors duration-200">
+              Privacy Policy
+            </Link>
+
+            <Link to="/privacy" className="text-neutral-500 hover:text-white text-sm font-normal transition-colors duration-200">
+              GitHub Repository
+            </Link>
+
+            <Link to="/privacy" className="text-neutral-500 hover:text-white text-sm font-normal transition-colors duration-200">
+              LinkedIn Profile
+            </Link>
+          </div>
+
+          //Copyright
+          <div className="flex flex-col items-center">
+            <p className="mt-4 text-neutral-500 text-sm font-normal">
+              &copy; {new Date().getFullYear()} Carlos Crespo. All rights reserved.
+            </p>  
+          </div>
+
+
         </footer>
       </div>
     </BrowserRouter>

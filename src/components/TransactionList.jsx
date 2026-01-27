@@ -2,10 +2,13 @@ import { useState } from 'react'
 import { useCurrency } from '../context/CurrencyContext'
 
 const CATEGORIES = [
+  'Credit Card',
+  'Bills',
   'Entertainment',
   'Food',
   'Housing',
   'Health',
+  "Loans",
   'Transportation',
   'Utilities',
   'Shopping',
