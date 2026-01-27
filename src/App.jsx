@@ -159,11 +159,11 @@ function App() {
               Privacy Policy
             </Link>
 
-            <Link to="/privacy" className="text-neutral-500 hover:text-white text-sm font-normal transition-colors duration-200">
+            <Link to="https://github.com/Crespo1301" className="text-neutral-500 hover:text-white text-sm font-normal transition-colors duration-200">
               GitHub Repository
             </Link>
 
-            <Link to="/privacy" className="text-neutral-500 hover:text-white text-sm font-normal transition-colors duration-200">
+            <Link to="https://www.linkedin.com/in/carlos-crespo-46608014a/" className="text-neutral-500 hover:text-white text-sm font-normal transition-colors duration-200">
               LinkedIn Profile
             </Link>
           </div>
