@@ -1,115 +1,203 @@
+import { useMemo, useState } from 'react'
 import { Pie } from 'react-chartjs-2'
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from 'chart.js'
 import { useCurrency } from '../context/CurrencyContext'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
-// Monochromatic palette with purple accent
+/* ---------------- Color Palette (Dark UI Safe) ---------------- */
 const COLORS = [
-  '#7c3aed', // violet-600 - primary accent
-  '#1a1a1a', // near black
-  '#404040', // neutral-700
-  '#525252', // neutral-600
-  '#737373', // neutral-500
-  '#a3a3a3', // neutral-400
-  '#d4d4d4', // neutral-300
-  '#e5e5e5', // neutral-200
+  '#38bdf8', // sky-400
+  '#22c55e', // green-500
+  '#f472b6', // pink-400
+  '#facc15', // yellow-400
+  '#a78bfa', // violet-400
+  '#fb7185', // rose-400
+  '#34d399', // emerald-400
+  '#60a5fa', // blue-400
 ]
 
-function PieChart({ transactions }) {
+const OTHER_THRESHOLD = 0.05 // 5%
+
+/**
+ * Props:
+ * - transactions: Transaction[]
+ * - cutout?: number | string (default: '65%')
+ */
+function PieChart({ transactions, cutout = '65%' }) {
   const { formatAmount } = useCurrency()
+  const [activeCategory, setActiveCategory] = useState(null)
+  const [hiddenCategories, setHiddenCategories] = useState({})
+
+  /* ---------- Filter Expenses ---------- */
   const expenses = transactions.filter((t) => t.type === 'expense')
 
-  const categoryTotals = expenses.reduce((acc, t) => {
-    acc[t.category] = (acc[t.category] || 0) + t.amount
-    return acc
-  }, {})
+  /* ---------- Aggregate ---------- */
+  const rawTotals = useMemo(() => {
+    return expenses.reduce((acc, t) => {
+      const category = t.category || 'Other'
+      acc[category] = (acc[category] || 0) + t.amount
+      return acc
+    }, {})
+  }, [expenses])
 
-  const sortedEntries = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])
+  const totalExpenses = Object.values(rawTotals).reduce(
+    (a, b) => a + b,
+    0
+  )
+
+  /* ---------- Group Small Categories ---------- */
+  const groupedTotals = {}
+  let otherTotal = 0
+
+  Object.entries(rawTotals).forEach(([key, value]) => {
+    if (value / totalExpenses < OTHER_THRESHOLD) {
+      otherTotal += value
+    } else {
+      groupedTotals[key] = value
+    }
+  })
+
+  if (otherTotal > 0) {
+    groupedTotals.Other = otherTotal
+  }
+
+  const sortedEntries = Object.entries(groupedTotals).sort(
+    (a, b) => b[1] - a[1]
+  )
+
   const labels = sortedEntries.map(([label]) => label)
-  const dataValues = sortedEntries.map(([, value]) => value)
+  const values = sortedEntries.map(([, value]) => value)
 
+  /* ---------- Visual State ---------- */
+  const displayValues = labels.map((label, i) => {
+    if (hiddenCategories[label]) return 0
+    if (activeCategory && activeCategory !== label) return values[i] * 0.15
+    return values[i]
+  })
+
+  const backgroundColors = labels.map((_, i) =>
+    activeCategory && activeCategory !== labels[i]
+      ? 'rgba(255,255,255,0.08)'
+      : COLORS[i % COLORS.length]
+  )
+
+  /* ---------- Data ---------- */
   const data = {
     labels,
     datasets: [
       {
-        data: dataValues,
-        backgroundColor: COLORS.slice(0, labels.length),
-        borderColor: '#404040',
-        borderWidth: 3,
-        hoverOffset: 8,
+        data: displayValues,
+        backgroundColor: backgroundColors,
+        borderColor: '#0f172a',
+        borderWidth: 2,
+        hoverOffset: 14,
+        cutout,
       },
     ],
   }
 
+  /* ---------- Options ---------- */
   const options = {
     responsive: true,
     maintainAspectRatio: true,
+    animation: {
+      duration: 700,
+      easing: 'easeOutQuart',
+    },
+    onClick: (_, elements) => {
+      if (!elements.length) {
+        setActiveCategory(null)
+        return
+      }
+      const index = elements[0].index
+      const clickedLabel = labels[index]
+      setActiveCategory((prev) =>
+        prev === clickedLabel ? null : clickedLabel
+      )
+    },
     plugins: {
       legend: {
         position: 'bottom',
+        onClick: (_, legendItem) => {
+          const label = legendItem.text
+          setHiddenCategories((prev) => ({
+            ...prev,
+            [label]: !prev[label],
+          }))
+        },
         labels: {
-          padding: 20,
-          font: {
-            family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
-            size: 12,
-            weight: '500'
-          },
-          color: '#e5e5e5',
+          color: '#e5e7eb',
+          padding: 16,
           usePointStyle: true,
           pointStyle: 'circle',
-        }
+        },
       },
       tooltip: {
-        backgroundColor: '#000000',
-        titleColor: '#e5e5e5',
-        bodyColor: '#e5e5e5',
-        padding: 14,
-        cornerRadius: 12,
-        titleFont: {
-          family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
-          size: 13,
-          weight: '600'
-        },
-        bodyFont: {
-          family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
-          size: 13
-        },
+        backgroundColor: '#020617',
+        padding: 12,
         callbacks: {
-          label: function(context) {
-            const label = context.label || '';
-            const value = context.parsed || 0;
-            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-            const percentage = ((value / total) * 100).toFixed(1);
-            return `${label}: ${formatAmount(value)} (${percentage}%)`;
-          }
-        }
-      }
+          label: (context) => {
+            const value = values[context.dataIndex]
+            const percentage =
+              totalExpenses > 0
+                ? ((value / totalExpenses) * 100).toFixed(1)
+                : 0
+            return `${context.label}: ${formatAmount(
+              value
+            )} (${percentage}%)`
+          },
+        },
+      },
     },
   }
 
-  if (expenses.length === 0) {
+  /* ---------- Empty State ---------- */
+  if (!expenses.length) {
     return (
-      <div className="p-6 sm:p-8 rounded-2xl bg-neutral-700 flex flex-col items-center justify-center min-h-[400px]">
-        <div className="w-16 h-16 rounded-full bg-neutral-500 flex items-center justify-center mb-4">
-          <svg className="w-8 h-8 text-neutral-200" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
-          </svg>
-        </div>
-        <h2 className="text-xl font-semibold text-neutral-200 mb-2">Expense Breakdown</h2>
-        <p className="text-neutral-400 text-sm text-center">Add expenses to see category distribution</p>
+      <div className="p-6 sm:p-8 rounded-2xl bg-neutral-800 flex items-center justify-center min-h-[360px]">
+        <p className="text-neutral-400">
+          Add expenses to see category distribution
+        </p>
       </div>
     )
   }
 
+  /* ---------- Center Label ---------- */
+  const centerValue = activeCategory
+    ? groupedTotals[activeCategory]
+    : totalExpenses
+
   return (
-    <div className="p-6 sm:p-8 rounded-2xl bg-neutral-700">
-      <h2 className="text-xl font-semibold text-neutral-200 tracking-tight mb-6">Expense Breakdown</h2>
-      <div className="flex items-center justify-center">
-        <div className="w-full max-w-[320px]">
+    <div className="p-6 sm:p-8 rounded-2xl bg-neutral-800 space-y-6">
+      <h2 className="text-xl font-semibold text-neutral-200 tracking-tight">
+        Expense Breakdown
+      </h2>
+
+      <div className="relative flex justify-center">
+        {/* Center Label */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <span className="text-sm text-neutral-400">
+            {activeCategory || 'Total'}
+          </span>
+          <span className="text-lg font-semibold text-neutral-200">
+            {formatAmount(centerValue)}
+          </span>
+        </div>
+
+        <div className="w-full max-w-[340px]">
           <Pie data={data} options={options} />
         </div>
+      </div>
+
+      {/* Interaction Hint */}
+      <div className="text-xs text-neutral-500">
+        Click a slice to focus · Click legend to toggle · Click empty space to reset
       </div>
     </div>
   )
