@@ -24,6 +24,8 @@ ChartJS.register(
 
 /* ---------------- Utility Math ---------------- */
 const linearRegression = (y) => {
+  if (y.length === 0) return { slope: 0, intercept: 0 }
+  
   const x = y.map((_, i) => i)
   const n = y.length
   const sumX = x.reduce((a, b) => a + b, 0)
@@ -31,8 +33,8 @@ const linearRegression = (y) => {
   const sumXY = x.reduce((s, xi, i) => s + xi * y[i], 0)
   const sumX2 = x.reduce((s, xi) => s + xi * xi, 0)
 
-  const slope =
-    (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX || 1)
+  const denominator = n * sumX2 - sumX * sumX
+  const slope = denominator === 0 ? 0 : (n * sumXY - sumX * sumY) / denominator
   const intercept = (sumY - slope * sumX) / n
 
   return { slope, intercept }
@@ -46,16 +48,33 @@ const stdDev = (arr) => {
   return Math.sqrt(variance)
 }
 
+/**
+ * Checks if a date falls within a range (inclusive).
+ * @param {Date} date
+ * @param {{ start: Date, end: Date } | null | undefined} range
+ * @returns {boolean}
+ */
+const isInRange = (date, range) => {
+  if (!range?.start || !range?.end) return true
+  return date >= range.start && date <= range.end
+}
+
 /* ---------------- Component ---------------- */
-function LineChart({ transactions }) {
+function LineChart({ transactions, focusedCategory, currentPeriod }) {
   const { formatAmount } = useCurrency()
   const chartRef = useRef(null)
 
   const [range, setRange] = useState('all')
 
+  /* ---------- Filter by Period ---------- */
+  const filteredTransactions = useMemo(() => {
+    if (!currentPeriod) return transactions
+    return transactions.filter((t) => isInRange(new Date(t.date), currentPeriod))
+  }, [transactions, currentPeriod])
+
   /* ---------- Aggregate Monthly Data ---------- */
   const monthly = useMemo(() => {
-    return transactions.reduce((acc, t) => {
+    return filteredTransactions.reduce((acc, t) => {
       const d = new Date(t.date)
       const key = `${d.getFullYear()}-${String(
         d.getMonth() + 1
@@ -69,7 +88,7 @@ function LineChart({ transactions }) {
 
       return acc
     }, {})
-  }, [transactions])
+  }, [filteredTransactions])
 
   const months = Object.keys(monthly).sort()
   const visibleMonths =
@@ -107,6 +126,7 @@ function LineChart({ transactions }) {
 
   /* ---------- Export ---------- */
   const exportPNG = () => {
+    if (!chartRef.current) return
     const link = document.createElement('a')
     link.download = 'financial-trends.png'
     link.href = chartRef.current.toBase64Image()
@@ -131,6 +151,21 @@ function LineChart({ transactions }) {
     a.download = 'financial-data.csv'
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  /* ---------- Empty State ---------- */
+  if (visibleMonths.length === 0) {
+    return (
+      <div className="p-6 rounded-2xl bg-neutral-800 flex flex-col items-center justify-center min-h-[300px]">
+        <div className="w-16 h-16 rounded-full bg-neutral-700 flex items-center justify-center mb-4">
+          <svg className="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5" />
+          </svg>
+        </div>
+        <h2 className="text-lg font-semibold text-neutral-200 mb-2">No Data for Selected Period</h2>
+        <p className="text-neutral-400 text-sm text-center">Add transactions or adjust the comparison period</p>
+      </div>
+    )
   }
 
   /* ---------- Chart Data ---------- */
@@ -196,6 +231,7 @@ function LineChart({ transactions }) {
         labels: {
           color: '#e5e7eb',
           usePointStyle: true,
+          filter: (item) => item.text !== 'Confidence Band' && item.datasetIndex !== 5,
         },
       },
       tooltip: {
@@ -204,8 +240,9 @@ function LineChart({ transactions }) {
         callbacks: {
           label: (ctx) => {
             const v = ctx.parsed.y
+            if (v === null) return null
             const prev = ctx.dataset.data[ctx.dataIndex - 1]
-            if (typeof prev === 'number') {
+            if (typeof prev === 'number' && prev !== 0) {
               const delta = v - prev
               const pct = ((delta / Math.abs(prev)) * 100).toFixed(1)
               return `${ctx.dataset.label}: ${formatAmount(
@@ -255,9 +292,19 @@ function LineChart({ transactions }) {
       </div>
 
       {/* Actions */}
-      <div className=" bg-neutral-800 text-neutral-200 flex gap-3 text-sm">
-        <button onClick={exportPNG}>Export PNG</button>
-        <button onClick={exportCSV}>Export CSV</button>
+      <div className="bg-neutral-800 text-neutral-200 flex gap-3 text-sm">
+        <button 
+          onClick={exportPNG}
+          className="hover:text-white transition-colors"
+        >
+          Export PNG
+        </button>
+        <button 
+          onClick={exportCSV}
+          className="hover:text-white transition-colors"
+        >
+          Export CSV
+        </button>
       </div>
 
       <Line ref={chartRef} data={data} options={options} />
