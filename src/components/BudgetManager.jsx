@@ -1,136 +1,297 @@
 import { useMemo, useState } from 'react'
 import { useCurrency } from '../context/CurrencyContext'
 
-const CATEGORIES = [
-  'Credit Card',
+/* -------------------------------------------- */
+/* Helpers */
+/* -------------------------------------------- */
+const monthKeyFromPeriod = (period) => {
+  if (!period?.start) return null
+  const d = period.start
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+const isPastPeriod = (period) => {
+  if (!period?.end) return false
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return period.end < today
+}
+
+const DEFAULT_CATEGORIES = [
   'Bills',
+  'Credit Card',
   'Entertainment',
   'Food',
   'Housing',
   'Health',
-  "Loans",
+  'Loans',
   'Transportation',
   'Utilities',
   'Shopping',
-  'Income',
-  'Other'
+  'Other',
 ]
 
-function BudgetManager({ budgets, setBudgets, transactions }) {
+/* -------------------------------------------- */
+/* Component */
+/* -------------------------------------------- */
+function BudgetManager({
+  budgets,
+  setBudgets,
+  transactions,
+  currentPeriod,
+  focusedCategory,
+}) {
   const { formatAmount, getSymbol } = useCurrency()
-  const [category, setCategory] = useState('Food')
-  const [amount, setAmount] = useState('')
-  const [monthOffset, setMonthOffset] = useState(0)
 
-  const targetDate = new Date()
-  targetDate.setMonth(targetDate.getMonth() - monthOffset)
-
-  const monthLabel = targetDate.toLocaleDateString('en-US', {
-    month: 'long',
-    year: 'numeric',
-  })
-
-  const spending = useMemo(() => {
-    return transactions
-      .filter(t => {
-        if (t.type !== 'expense') return false
-        const d = new Date(t.date)
-        return (
-          d.getMonth() === targetDate.getMonth() &&
-          d.getFullYear() === targetDate.getFullYear()
-        )
-      })
-      .reduce((acc, t) => {
-        acc[t.category] = (acc[t.category] || 0) + t.amount
-        return acc
-      }, {})
-  }, [transactions, monthOffset])
-
-  const setBudget = () => {
-    if (!amount) return
-    setBudgets({
-      ...budgets,
-      [category]: Number(amount),
-    })
-    setAmount('')
+  // Guard: requires a selected month (period)
+  if (!currentPeriod?.start || !currentPeriod?.end) {
+    return (
+      <div className="p-6 rounded-2xl bg-neutral-800 text-sm text-neutral-400">
+        Select a month or year comparison to manage budgets.
+      </div>
+    )
   }
+
+  const monthKey = monthKeyFromPeriod(currentPeriod)
+  const monthBudgets = budgets?.[monthKey] || {}
+  const locked = isPastPeriod(currentPeriod)
+
+  // ✅ Add Budget UI state
+  const [newCategory, setNewCategory] = useState(DEFAULT_CATEGORIES[0])
+  const [newLimit, setNewLimit] = useState('')
+
+  /* ---------- Expenses in Period ---------- */
+  const expenses = useMemo(() => {
+    return transactions.filter((t) => {
+      if (t.type !== 'expense') return false
+      const d = new Date(t.date)
+      return d >= currentPeriod.start && d <= currentPeriod.end
+    })
+  }, [transactions, currentPeriod])
+
+  /* ---------- Spend by Category ---------- */
+  const spentByCategory = useMemo(() => {
+    return expenses.reduce((acc, t) => {
+      const cat = t.category || 'Other'
+      acc[cat] = (acc[cat] || 0) + t.amount
+      return acc
+    }, {})
+  }, [expenses])
+
+  /* ---------- Forecast Math (Safe) ---------- */
+  const today = new Date()
+  const monthStart = currentPeriod.start
+  const totalDays = new Date(
+    monthStart.getFullYear(),
+    monthStart.getMonth() + 1,
+    0
+  ).getDate()
+
+  const daysElapsed =
+    today < monthStart ? 0 : Math.min(today.getDate(), totalDays)
+
+  /* ---------- Actions ---------- */
+  const setBudget = () => {
+    if (locked) return
+    const val = Number(newLimit)
+    if (!newCategory || !val || val <= 0) return
+
+    // Creates or updates the budget for this category in this month
+    setBudgets((prev) => ({
+      ...(prev || {}),
+      [monthKey]: {
+        ...((prev && prev[monthKey]) || {}),
+        [newCategory]: val,
+      },
+    }))
+
+    setNewLimit('')
+  }
+
+  const updateBudget = (category, value) => {
+    if (locked) return
+    setBudgets((prev) => ({
+      ...(prev || {}),
+      [monthKey]: {
+        ...((prev && prev[monthKey]) || {}),
+        [category]: Number(value),
+      },
+    }))
+  }
+
+  const removeBudget = (category) => {
+    if (locked) return
+    setBudgets((prev) => {
+      const nextMonth = { ...((prev && prev[monthKey]) || {}) }
+      delete nextMonth[category]
+      return { ...(prev || {}), [monthKey]: nextMonth }
+    })
+  }
+
+  const copyLastMonth = () => {
+    if (locked) return
+    const d = currentPeriod.start
+    const prevKey = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, '0')}`
+    const prevBudgets = budgets?.[prevKey]
+    if (!prevBudgets || Object.keys(prevBudgets).length === 0) return
+
+    // Only copy if current month has none (prevents accidental overwrites)
+    if (Object.keys(monthBudgets).length > 0) return
+
+    setBudgets((prev) => ({
+      ...(prev || {}),
+      [monthKey]: { ...prevBudgets },
+    }))
+  }
+
+  const categoriesForDropdown = useMemo(() => {
+    // Include categories seen in expenses too so you can set budgets for real usage
+    const fromTx = Array.from(
+      new Set(expenses.map((t) => t.category || 'Other'))
+    )
+    return Array.from(
+      new Set([...DEFAULT_CATEGORIES, ...fromTx])
+    ).sort()
+  }, [expenses])
 
   return (
     <div className="p-6 rounded-2xl bg-neutral-800 space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-white">
-          Budgets
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-neutral-200">
+          Monthly Budgets
         </h2>
-        <span className="text-xs text-neutral-400">{monthLabel}</span>
+
+        {!locked && Object.keys(monthBudgets).length === 0 && (
+          <button
+            onClick={copyLastMonth}
+            className="text-xs text-violet-400 hover:text-violet-300"
+          >
+            Copy Last Month
+          </button>
+        )}
       </div>
 
-      {/* Month Nav */}
-      <div className="flex justify-between text-xs text-neutral-400">
-        <button onClick={() => setMonthOffset(o => o + 1)}>← Previous</button>
-        <button onClick={() => setMonthOffset(o => Math.max(o - 1, 0))}>
-          Next →
-        </button>
+      {/* Add / Set Budget */}
+      <div className="bg-neutral-900 rounded-xl p-4 space-y-3">
+        <div className="text-sm text-neutral-200 font-medium">
+          Set a budget for this month
+        </div>
+
+        {locked ? (
+          <div className="text-xs text-neutral-500">
+            Budgets are locked for past months.
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row gap-3">
+            <select
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+              className="flex-1 bg-neutral-800 text-white px-3 py-2 rounded-lg text-sm"
+            >
+              {categoriesForDropdown.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+
+            <input
+              type="number"
+              min="0"
+              value={newLimit}
+              onChange={(e) => setNewLimit(e.target.value)}
+              placeholder={`${getSymbol?.() ?? '$'}0`}
+              className="w-full sm:w-40 bg-neutral-800 text-white px-3 py-2 rounded-lg text-sm"
+            />
+
+            <button
+              onClick={setBudget}
+              className="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:bg-neutral-200 transition"
+            >
+              Set Budget
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Add */}
-      <div className="flex gap-2">
-        <select
-          value={category}
-          onChange={e => setCategory(e.target.value)}
-          className="flex-1 bg-neutral-700 text-white px-3 py-2 rounded"
-        >
-          {CATEGORIES.map(c => (
-            <option key={c}>{c}</option>
-          ))}
-        </select>
+      {/* Existing Budgets */}
+      {Object.keys(monthBudgets).length === 0 ? (
+        <div className="text-sm text-neutral-500">
+          No budgets set for this month
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {Object.entries(monthBudgets).map(([category, limit]) => {
+            const spent = spentByCategory[category] || 0
+            const remaining = limit - spent
 
-        <input
-          type="number"
-          value={amount}
-          onChange={e => setAmount(e.target.value)}
-          placeholder={`${getSymbol()}0`}
-          className="w-28 bg-neutral-700 text-white px-3 py-2 rounded"
-        />
+            const dailyRate = daysElapsed > 0 ? spent / daysElapsed : 0
+            const projected = dailyRate * totalDays
 
-        <button
-          onClick={setBudget}
-          className="px-4 py-2 bg-violet-600 rounded text-white"
-        >
-          Set
-        </button>
-      </div>
+            let status = 'under'
+            if (remaining === 0) status = 'met'
+            if (remaining < 0) status = 'over'
 
-      {/* List */}
-      <div className="space-y-3">
-        {Object.entries(budgets).map(([cat, limit]) => {
-          const spent = spending[cat] || 0
-          const pct = Math.min((spent / limit) * 100, 100)
+            const pct = Math.min((spent / limit) * 100, 100)
 
-          return (
-            <div key={cat} className="bg-neutral-900 p-4 rounded-xl">
-              <div className="flex justify-between text-sm">
-                <span className="text-white">{cat}</span>
-                <span className="text-neutral-400">
-                  {formatAmount(spent)} / {formatAmount(limit)}
-                </span>
+            return (
+              <div
+                key={category}
+                className={`p-4 rounded-lg bg-neutral-900 ${
+                  focusedCategory === category ? 'ring-2 ring-violet-500' : ''
+                }`}
+              >
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-neutral-200">{category}</span>
+                  <span className="text-neutral-300">
+                    {formatAmount(spent)} / {formatAmount(limit)}
+                  </span>
+                </div>
+
+                <div className="h-2 bg-neutral-700 rounded">
+                  <div
+                    className={`h-2 rounded ${
+                      status === 'over'
+                        ? 'bg-red-500'
+                        : status === 'met'
+                        ? 'bg-yellow-400'
+                        : 'bg-green-500'
+                    }`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+
+                <div className="text-xs mt-2 text-neutral-400">
+                  {status === 'met' && 'Budget met — do not go over'}
+                  {status === 'under' && `Remaining: ${formatAmount(remaining)}`}
+                  {status === 'over' && `Over by ${formatAmount(Math.abs(remaining))}`}
+                </div>
+
+                <div className="text-xs text-neutral-500 mt-1">
+                  Forecast end-of-month: {formatAmount(projected)}
+                </div>
+
+                {!locked && (
+                  <div className="flex gap-2 mt-3">
+                    <input
+                      type="number"
+                      value={limit}
+                      onChange={(e) => updateBudget(category, e.target.value)}
+                      className="flex-1 bg-neutral-800 rounded px-2 py-1 text-sm text-white"
+                    />
+                    <button
+                      onClick={() => removeBudget(category)}
+                      className="text-xs text-red-400 hover:text-red-300"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
               </div>
-
-              <div className="h-2 bg-neutral-700 rounded mt-2">
-                <div
-                  className={`h-full rounded ${
-                    pct >= 100
-                      ? 'bg-red-500'
-                      : pct >= 80
-                      ? 'bg-yellow-400'
-                      : 'bg-green-500'
-                  }`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

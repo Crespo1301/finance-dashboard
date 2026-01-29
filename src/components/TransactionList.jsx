@@ -2,13 +2,13 @@ import { useState } from 'react'
 import { useCurrency } from '../context/CurrencyContext'
 
 const CATEGORIES = [
-  'Credit Card',
   'Bills',
+  'Credit Card',
   'Entertainment',
   'Food',
   'Housing',
   'Health',
-  "Loans",
+  'Loans',
   'Transportation',
   'Utilities',
   'Shopping',
@@ -16,7 +16,12 @@ const CATEGORIES = [
   'Other'
 ]
 
-function TransactionList({ transactions, onDeleteTransaction, onEditTransaction }) {
+function TransactionList({
+  transactions,
+  onDeleteTransaction,
+  onEditTransaction,
+  onHoverCategory // ✅ NEW (optional)
+}) {
   const { formatAmount } = useCurrency()
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({})
@@ -68,7 +73,7 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
             className="w-full pl-11 pr-4 py-2.5 bg-neutral-200 border border-neutral-200 rounded-xl text-black text-sm placeholder-neutral-400 focus:outline-none focus:border-violet-500 transition-colors"
           />
         </div>
-        
+
         <div className="flex gap-2 flex-wrap">
           <select
             value={filterType}
@@ -79,7 +84,7 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
             <option value="income">Income</option>
             <option value="expense">Expense</option>
           </select>
-          
+
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
@@ -90,7 +95,7 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
-          
+
           {(searchTerm || filterCategory !== 'All' || filterType !== 'All') && (
             <button
               onClick={() => {
@@ -123,6 +128,8 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
           {filteredTransactions.map((transaction) => (
             <div
               key={transaction.id}
+              onMouseEnter={() => onHoverCategory?.(transaction.category)}
+              onMouseLeave={() => onHoverCategory?.(null)}
               className="group flex items-center gap-4 p-4 bg-neutral-200 rounded-xl hover:shadow-sm transition-all duration-200"
             >
               {editingId === transaction.id ? (
@@ -131,22 +138,20 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
                   <input
                     type="text"
                     value={editForm.description}
-                    onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                     className="w-full px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-black text-sm focus:outline-none focus:border-violet-500"
-                    placeholder="Description"
                   />
                   <div className="flex gap-2">
                     <input
                       type="number"
                       value={editForm.amount}
-                      onChange={(e) => setEditForm({...editForm, amount: e.target.value})}
+                      onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
                       className="flex-1 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-black text-sm focus:outline-none focus:border-violet-500"
-                      placeholder="Amount"
                       step="0.01"
                     />
                     <select
                       value={editForm.category}
-                      onChange={(e) => setEditForm({...editForm, category: e.target.value})}
+                      onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
                       className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-black text-sm focus:outline-none focus:border-violet-500"
                     >
                       {CATEGORIES.map(cat => (
@@ -191,15 +196,15 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <span className={`font-semibold tabular-nums ${
                       transaction.type === 'income' ? 'text-black' : 'text-neutral-600'
                     }`}>
-                      {transaction.type === 'income' ? '+' : '-'}{formatAmount(transaction.amount)}
+                      {transaction.type === 'income' ? '+' : '-'}
+                      {formatAmount(transaction.amount)}
                     </span>
-                    
-                    {/* Action Buttons */}
+
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => {
@@ -211,20 +216,14 @@ function TransactionList({ transactions, onDeleteTransaction, onEditTransaction 
                           })
                         }}
                         className="p-2 text-neutral-700 hover:text-violet-600 hover:bg-violet-200 rounded-lg transition-colors"
-                        aria-label="Edit"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
-                        </svg>
+                        ✏️
                       </button>
                       <button
                         onClick={() => onDeleteTransaction(transaction.id)}
                         className="p-2 text-neutral-700 hover:text-red-600 hover:bg-red-200 rounded-lg transition-colors"
-                        aria-label="Delete"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                        </svg>
+                        ✕
                       </button>
                     </div>
                   </div>

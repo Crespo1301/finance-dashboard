@@ -12,197 +12,118 @@ import BudgetManager from './components/BudgetManager'
 import YearComparison from './components/YearComparison'
 
 /* -------------------------------------------------- */
-/* Date Range Helpers (Fixed for inclusive end dates) */
+/* Date Helpers */
 /* -------------------------------------------------- */
 
-/**
- * Returns a month range with inclusive start and end dates.
- * @param {number} offset - Number of months to go back (0 = current month)
- * @returns {{ start: Date, end: Date }}
- */
-const getMonthRange = (offset = 0) => {
-  const now = new Date()
-  
-  // Start of the target month
-  const start = new Date(now.getFullYear(), now.getMonth() - offset, 1)
+const monthKeyFromDate = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+
+const getMonthRangeFromDate = (date) => {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1)
   start.setHours(0, 0, 0, 0)
 
-  // End of the target month (last millisecond)
-  const end = new Date(start.getFullYear(), start.getMonth() + 1, 1)
-  end.setMilliseconds(-1) // Go back 1ms to get 23:59:59.999 of last day
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 1)
+  end.setMilliseconds(-1)
 
   return { start, end }
 }
 
-/**
- * Returns a year range with inclusive start and end dates.
- * @param {number} offset - Number of years to go back (0 = current year)
- * @returns {{ start: Date, end: Date }}
- */
-const getYearRange = (offset = 0) => {
-  const year = new Date().getFullYear() - offset
+const getYearRangeFromDate = (date) => {
+  const year = date.getFullYear()
 
-  // Start of the target year
   const start = new Date(year, 0, 1)
   start.setHours(0, 0, 0, 0)
 
-  // End of the target year (last millisecond of Dec 31)
   const end = new Date(year + 1, 0, 1)
-  end.setMilliseconds(-1) // Go back 1ms to get 23:59:59.999 of Dec 31
+  end.setMilliseconds(-1)
 
   return { start, end }
 }
 
-/**
- * Computes comparison periods based on the selected mode.
- * @param {'none' | 'month' | 'year'} mode
- * @returns {{ currentPeriod?: { start: Date, end: Date }, previousPeriod?: { start: Date, end: Date } }}
- */
-const getComparisonPeriods = (mode) => {
-  if (mode === 'none') {
-    return { currentPeriod: null, previousPeriod: null }
+const getPeriodLabel = (mode, date) => {
+  if (mode === 'month') {
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric',
+    })
   }
 
   if (mode === 'year') {
-    return {
-      currentPeriod: getYearRange(0),
-      previousPeriod: getYearRange(1),
-    }
+    return date.getFullYear().toString()
   }
 
-  // Default: month over month
-  return {
-    currentPeriod: getMonthRange(0),
-    previousPeriod: getMonthRange(1),
-  }
-}
-
-/**
- * Formats a date for display in the debug overlay.
- * @param {Date | null | undefined} date
- * @returns {string}
- */
-const formatDebugDate = (date) => {
-  if (!date) return 'N/A'
-  return date.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
-}
-
-/**
- * Returns a human-readable label for the current period.
- * @param {'none' | 'month' | 'year'} mode
- * @param {{ start: Date, end: Date } | null} period
- * @returns {string}
- */
-const getPeriodLabel = (mode, period) => {
-  if (mode === 'none' || !period) return ''
-  
-  if (mode === 'month') {
-    return period.start.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-  }
-  
-  return period.start.getFullYear().toString()
+  return ''
 }
 
 /* -------------------------------------------------- */
-/* Debug Overlay Component */
+/* Budget LocalStorage Migration */
 /* -------------------------------------------------- */
-function DebugOverlay({ comparisonMode, currentPeriod, previousPeriod, transactions }) {
+/**
+ * Supports both:
+ * 1) Old format: { Housing: 900, Food: 300 }
+ * 2) New format: { "2026-01": { Housing: 900 } }
+ */
+const normalizeBudgets = (raw) => {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
+
+  const values = Object.values(raw)
+  if (values.length === 0) return {}
+
+  const firstVal = values[0]
+
+  const isNewFormat =
+    firstVal &&
+    typeof firstVal === 'object' &&
+    !Array.isArray(firstVal)
+
+  if (isNewFormat) return raw
+
+  const isOldFormat = values.every((v) => typeof v === 'number')
+  if (!isOldFormat) return {}
+
+  // migrate old format into current month
+  const key = monthKeyFromDate(new Date())
+  return { [key]: raw }
+}
+
+/* -------------------------------------------------- */
+/* Debug Overlay */
+/* -------------------------------------------------- */
+function DebugOverlay({
+  comparisonMode,
+  currentPeriod,
+  previousPeriod,
+  transactions,
+}) {
   const [isVisible, setIsVisible] = useState(false)
 
-  // Count transactions in each period
-  const currentCount = useMemo(() => {
-    if (!currentPeriod) return 0
-    return transactions.filter((t) => {
-      const date = new Date(t.date)
-      return date >= currentPeriod.start && date <= currentPeriod.end
-    }).length
-  }, [transactions, currentPeriod])
-
-  const previousCount = useMemo(() => {
-    if (!previousPeriod) return 0
-    return transactions.filter((t) => {
-      const date = new Date(t.date)
-      return date >= previousPeriod.start && date <= previousPeriod.end
-    }).length
-  }, [transactions, previousPeriod])
-
-  // Only show in development
   if (import.meta.env.PROD) return null
+
+  const countInRange = (range) =>
+    !range
+      ? 0
+      : transactions.filter((t) => {
+          const d = new Date(t.date)
+          return d >= range.start && d <= range.end
+        }).length
 
   return (
     <>
-      {/* Toggle Button */}
       <button
-        onClick={() => setIsVisible(!isVisible)}
-        className="fixed bottom-4 right-4 z-50 w-10 h-10 bg-violet-600 hover:bg-violet-700 text-white rounded-full flex items-center justify-center shadow-lg transition-colors"
-        title="Toggle Debug Overlay"
+        onClick={() => setIsVisible((v) => !v)}
+        className="fixed bottom-4 right-4 z-50 w-10 h-10 bg-violet-600 text-white rounded-full"
+        title="Toggle Debug"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-        </svg>
+        ⚙
       </button>
 
-      {/* Debug Panel */}
       {isVisible && (
-        <div className="fixed bottom-16 right-4 z-50 w-80 bg-neutral-900 border border-neutral-700 rounded-xl shadow-2xl p-4 text-xs font-mono">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-violet-400 font-semibold text-sm">Date Range Debug</h3>
-            <button
-              onClick={() => setIsVisible(false)}
-              className="text-neutral-500 hover:text-white"
-            >
-              ✕
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {/* Mode */}
-            <div className="flex justify-between">
-              <span className="text-neutral-500">Mode:</span>
-              <span className="text-white">{comparisonMode}</span>
-            </div>
-
-            {/* Current Period */}
-            <div className="bg-neutral-800 rounded-lg p-2">
-              <div className="text-green-400 mb-1">Current Period</div>
-              <div className="text-neutral-400">
-                Start: <span className="text-white">{formatDebugDate(currentPeriod?.start)}</span>
-              </div>
-              <div className="text-neutral-400">
-                End: <span className="text-white">{formatDebugDate(currentPeriod?.end)}</span>
-              </div>
-              <div className="text-neutral-400 mt-1">
-                Transactions: <span className="text-green-400">{currentCount}</span>
-              </div>
-            </div>
-
-            {/* Previous Period */}
-            <div className="bg-neutral-800 rounded-lg p-2">
-              <div className="text-yellow-400 mb-1">Previous Period</div>
-              <div className="text-neutral-400">
-                Start: <span className="text-white">{formatDebugDate(previousPeriod?.start)}</span>
-              </div>
-              <div className="text-neutral-400">
-                End: <span className="text-white">{formatDebugDate(previousPeriod?.end)}</span>
-              </div>
-              <div className="text-neutral-400 mt-1">
-                Transactions: <span className="text-yellow-400">{previousCount}</span>
-              </div>
-            </div>
-
-            {/* Total */}
-            <div className="flex justify-between pt-2 border-t border-neutral-700">
-              <span className="text-neutral-500">Total Transactions:</span>
-              <span className="text-white">{transactions.length}</span>
-            </div>
-          </div>
+        <div className="fixed bottom-16 right-4 z-50 w-80 bg-neutral-900 border border-neutral-700 rounded-xl p-4 text-xs font-mono">
+          <div className="text-violet-400 mb-2">Debug</div>
+          <div>Mode: {comparisonMode}</div>
+          <div>Current: {countInRange(currentPeriod)}</div>
+          <div>Previous: {countInRange(previousPeriod)}</div>
+          <div>Total: {transactions.length}</div>
         </div>
       )}
     </>
@@ -220,11 +141,15 @@ function Dashboard() {
 
   const [budgets, setBudgets] = useState(() => {
     const saved = localStorage.getItem('budgets')
-    return saved ? JSON.parse(saved) : {}
+    const parsed = saved ? JSON.parse(saved) : {}
+    return normalizeBudgets(parsed)
   })
 
+  const [comparisonMode, setComparisonMode] = useState('none')
   const [focusedCategory, setFocusedCategory] = useState(null)
-  const [comparisonMode, setComparisonMode] = useState('none') // none | month | year
+
+  // controls which month/year is being viewed
+  const [viewDate, setViewDate] = useState(new Date())
 
   /* ---------- Persistence ---------- */
   useEffect(() => {
@@ -235,43 +160,49 @@ function Dashboard() {
     localStorage.setItem('budgets', JSON.stringify(budgets))
   }, [budgets])
 
-  /* ---------- Comparison Periods ---------- */
-  const { currentPeriod, previousPeriod } = useMemo(
-    () => getComparisonPeriods(comparisonMode),
-    [comparisonMode]
-  )
+  /* ---------- Periods ---------- */
+  // Key fix: even when comparisonMode = 'none', we still set a usable month range
+  const currentPeriod = useMemo(() => {
+    if (comparisonMode === 'year') return getYearRangeFromDate(viewDate)
+    // month OR none => month range (so budgets work always)
+    return getMonthRangeFromDate(viewDate)
+  }, [comparisonMode, viewDate])
 
-  /* ---------- Period Label ---------- */
-  const periodLabel = useMemo(
-    () => getPeriodLabel(comparisonMode, currentPeriod),
-    [comparisonMode, currentPeriod]
-  )
+  const previousPeriod = useMemo(() => {
+    if (comparisonMode === 'month') {
+      const prev = new Date(viewDate)
+      prev.setMonth(prev.getMonth() - 1)
+      return getMonthRangeFromDate(prev)
+    }
+
+    if (comparisonMode === 'year') {
+      const prev = new Date(viewDate)
+      prev.setFullYear(prev.getFullYear() - 1)
+      return getYearRangeFromDate(prev)
+    }
+
+    return null
+  }, [comparisonMode, viewDate])
+
+  const periodLabel = useMemo(() => {
+    if (comparisonMode === 'year') return getPeriodLabel('year', viewDate)
+    // month OR none => show month label
+    return getPeriodLabel('month', viewDate)
+  }, [comparisonMode, viewDate])
 
   /* ---------- CRUD ---------- */
-  const addTransaction = (transaction) => {
-    setTransactions([transaction, ...transactions])
-  }
+  const addTransaction = (t) => setTransactions([t, ...transactions])
 
-  const editTransaction = (id, updatedTransaction) => {
-    setTransactions(
-      transactions.map((t) =>
-        t.id === id ? { ...updatedTransaction, id } : t
-      )
-    )
-  }
-
-  const deleteTransaction = (id) => {
+  const deleteTransaction = (id) =>
     setTransactions(transactions.filter((t) => t.id !== id))
-  }
+
+  const editTransaction = (id, updated) =>
+    setTransactions(transactions.map((t) => (t.id === id ? { ...updated, id } : t)))
 
   /* ---------- Export ---------- */
   const exportToCSV = () => {
-    if (!transactions.length) {
-      alert('No transactions to export!')
-      return
-    }
+    if (!transactions.length) return alert('No transactions')
 
-    const headers = ['Date', 'Description', 'Category', 'Type', 'Amount']
     const rows = transactions.map((t) => [
       new Date(t.date).toLocaleDateString(),
       t.description,
@@ -280,39 +211,36 @@ function Dashboard() {
       t.amount.toFixed(2),
     ])
 
-    const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n')
+    const csv = [
+      ['Date', 'Description', 'Category', 'Type', 'Amount'].join(','),
+      ...rows.map((r) => r.join(',')),
+    ].join('\n')
 
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `transactions_${new Date()
-      .toISOString()
-      .split('T')[0]}.csv`
-    link.click()
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'transactions.csv'
+    a.click()
     URL.revokeObjectURL(url)
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 p-4 sm:p-6 lg:p-10">
+    <div className="min-h-screen bg-neutral-950 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <header className="mb-12 sm:mb-16">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-white text-center mb-3">
-            Finance
-          </h1>
-
-          <p className="text-center text-neutral-400 text-base sm:text-lg">
+        <header className="mb-12 text-center">
+          <h1 className="text-5xl font-semibold text-white">Finance</h1>
+          <p className="text-neutral-400 mt-2">
             Track your income and expenses
           </p>
 
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mt-6">
+          <div className="flex justify-center gap-3 mt-6">
             <CurrencySelector />
-
             {transactions.length > 0 && (
               <button
                 onClick={exportToCSV}
-                className="px-5 py-2.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-white text-sm font-medium transition-colors"
+                className="px-5 py-2 rounded-full bg-neutral-800 text-white hover:bg-neutral-700 transition-colors"
               >
                 Export CSV
               </button>
@@ -326,7 +254,7 @@ function Dashboard() {
         </section>
 
         {/* Comparison Controls */}
-        <section className="mb-6 flex flex-col items-center gap-2">
+        <section className="mb-6 flex flex-col items-center gap-3">
           <div className="bg-neutral-800 rounded-full p-1 flex gap-1 text-sm">
             {[
               { label: 'No Comparison', value: 'none' },
@@ -346,12 +274,32 @@ function Dashboard() {
               </button>
             ))}
           </div>
-          
-          {/* Active Period Label */}
-          {periodLabel && (
-            <span className="text-xs text-neutral-500">
-              Viewing: {periodLabel}
-            </span>
+
+          {/* Month navigation for month-based views (none/month) */}
+          {comparisonMode !== 'year' && (
+            <div className="flex items-center gap-4 text-sm text-neutral-300">
+              <button
+                onClick={() =>
+                  setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))
+                }
+                className="px-2 py-1 rounded hover:bg-neutral-800 transition"
+                aria-label="Previous month"
+              >
+                ←
+              </button>
+
+              <span className="text-neutral-400">{periodLabel}</span>
+
+              <button
+                onClick={() =>
+                  setViewDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))
+                }
+                className="px-2 py-1 rounded hover:bg-neutral-800 transition"
+                aria-label="Next month"
+              >
+                →
+              </button>
+            </div>
           )}
         </section>
 
@@ -359,24 +307,26 @@ function Dashboard() {
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-12 sm:mb-16">
           <PieChart
             transactions={transactions}
-            currentPeriod={currentPeriod}
+            currentPeriod={comparisonMode === 'none' ? null : currentPeriod}
             previousPeriod={previousPeriod}
             onCategoryFocus={setFocusedCategory}
           />
 
           <LineChart
             transactions={transactions}
-            focusedCategory={focusedCategory}
             currentPeriod={currentPeriod}
+            focusedCategory={focusedCategory}
           />
         </section>
 
-        {/* Budget Manager */}
+        {/* Budget */}
         <section className="mb-12 sm:mb-16">
           <BudgetManager
             budgets={budgets}
             setBudgets={setBudgets}
             transactions={transactions}
+            currentPeriod={currentPeriod}
+            focusedCategory={focusedCategory}
           />
         </section>
 
@@ -386,17 +336,18 @@ function Dashboard() {
         </section>
 
         {/* Transactions */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-12">
           <TransactionForm onAddTransaction={addTransaction} />
+
           <TransactionList
             transactions={transactions}
             onDeleteTransaction={deleteTransaction}
             onEditTransaction={editTransaction}
+            onHoverCategory={setFocusedCategory}
           />
         </section>
       </div>
 
-      {/* Debug Overlay (development only) */}
       <DebugOverlay
         comparisonMode={comparisonMode}
         currentPeriod={currentPeriod}
