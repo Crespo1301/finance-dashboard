@@ -43,7 +43,6 @@ function BudgetManager({
 }) {
   const { formatAmount, getSymbol } = useCurrency()
 
-  // Guard: requires a selected month (period)
   if (!currentPeriod?.start || !currentPeriod?.end) {
     return (
       <div className="p-6 rounded-2xl bg-neutral-800 text-sm text-neutral-400">
@@ -56,11 +55,9 @@ function BudgetManager({
   const monthBudgets = budgets?.[monthKey] || {}
   const locked = isPastPeriod(currentPeriod)
 
-  // ✅ Add Budget UI state
   const [newCategory, setNewCategory] = useState(DEFAULT_CATEGORIES[0])
   const [newLimit, setNewLimit] = useState('')
 
-  /* ---------- Expenses in Period ---------- */
   const expenses = useMemo(() => {
     return transactions.filter((t) => {
       if (t.type !== 'expense') return false
@@ -69,16 +66,14 @@ function BudgetManager({
     })
   }, [transactions, currentPeriod])
 
-  /* ---------- Spend by Category ---------- */
   const spentByCategory = useMemo(() => {
     return expenses.reduce((acc, t) => {
       const cat = t.category || 'Other'
-      acc[cat] = (acc[cat] || 0) + t.amount
+      acc[cat] = (acc[cat] || 0) + (Number(t.amount) || 0)
       return acc
     }, {})
   }, [expenses])
 
-  /* ---------- Forecast Math (Safe) ---------- */
   const today = new Date()
   const monthStart = currentPeriod.start
   const totalDays = new Date(
@@ -86,17 +81,13 @@ function BudgetManager({
     monthStart.getMonth() + 1,
     0
   ).getDate()
+  const daysElapsed = today < monthStart ? 0 : Math.min(today.getDate(), totalDays)
 
-  const daysElapsed =
-    today < monthStart ? 0 : Math.min(today.getDate(), totalDays)
-
-  /* ---------- Actions ---------- */
   const setBudget = () => {
     if (locked) return
     const val = Number(newLimit)
     if (!newCategory || !val || val <= 0) return
 
-    // Creates or updates the budget for this category in this month
     setBudgets((prev) => ({
       ...(prev || {}),
       [monthKey]: {
@@ -134,8 +125,6 @@ function BudgetManager({
     const prevKey = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, '0')}`
     const prevBudgets = budgets?.[prevKey]
     if (!prevBudgets || Object.keys(prevBudgets).length === 0) return
-
-    // Only copy if current month has none (prevents accidental overwrites)
     if (Object.keys(monthBudgets).length > 0) return
 
     setBudgets((prev) => ({
@@ -145,21 +134,14 @@ function BudgetManager({
   }
 
   const categoriesForDropdown = useMemo(() => {
-    // Include categories seen in expenses too so you can set budgets for real usage
-    const fromTx = Array.from(
-      new Set(expenses.map((t) => t.category || 'Other'))
-    )
-    return Array.from(
-      new Set([...DEFAULT_CATEGORIES, ...fromTx])
-    ).sort()
+    const fromTx = Array.from(new Set(expenses.map((t) => t.category || 'Other')))
+    return Array.from(new Set([...DEFAULT_CATEGORIES, ...fromTx])).sort()
   }, [expenses])
 
   return (
     <div className="p-6 rounded-2xl bg-neutral-800 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-neutral-200">
-          Monthly Budgets
-        </h2>
+        <h2 className="text-xl font-semibold text-neutral-200">Monthly Budgets</h2>
 
         {!locked && Object.keys(monthBudgets).length === 0 && (
           <button
@@ -171,7 +153,6 @@ function BudgetManager({
         )}
       </div>
 
-      {/* Add / Set Budget */}
       <div className="bg-neutral-900 rounded-xl p-4 space-y-3">
         <div className="text-sm text-neutral-200 font-medium">
           Set a budget for this month
@@ -214,11 +195,8 @@ function BudgetManager({
         )}
       </div>
 
-      {/* Existing Budgets */}
       {Object.keys(monthBudgets).length === 0 ? (
-        <div className="text-sm text-neutral-500">
-          No budgets set for this month
-        </div>
+        <div className="text-sm text-neutral-500">No budgets set for this month</div>
       ) : (
         <div className="space-y-4">
           {Object.entries(monthBudgets).map(([category, limit]) => {

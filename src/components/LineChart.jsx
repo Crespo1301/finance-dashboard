@@ -55,25 +55,19 @@ function LineChart({ transactions, focusedCategory, currentPeriod }) {
   const { formatAmount } = useCurrency()
   const chartRef = useRef(null)
 
-  /* ---------- Filter by Period ---------- */
   const filteredTransactions = useMemo(() => {
     if (!currentPeriod) return transactions
-    return transactions.filter((t) =>
-      isInRange(new Date(t.date), currentPeriod)
-    )
+    return transactions.filter((t) => isInRange(new Date(t.date), currentPeriod))
   }, [transactions, currentPeriod])
 
-  /* ---------- Monthly Aggregation ---------- */
   const monthly = useMemo(() => {
     return filteredTransactions.reduce((acc, t) => {
       const d = new Date(t.date)
-      const key = `${d.getFullYear()}-${String(
-        d.getMonth() + 1
-      ).padStart(2, '0')}`
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
       if (!acc[key]) acc[key] = { income: 0, expenses: 0 }
       t.type === 'income'
-        ? (acc[key].income += t.amount)
-        : (acc[key].expenses += t.amount)
+        ? (acc[key].income += Number(t.amount) || 0)
+        : (acc[key].expenses += Number(t.amount) || 0)
       return acc
     }, {})
   }, [filteredTransactions])
@@ -99,7 +93,6 @@ function LineChart({ transactions, focusedCategory, currentPeriod }) {
   const expenses = months.map((m) => monthly[m].expenses)
   const net = income.map((v, i) => v - expenses[i])
 
-  /* ---------- Forecast ---------- */
   const forecastSteps = 3
   const { slope, intercept } = linearRegression(net)
   const sigma = stdDev(net)
@@ -110,36 +103,38 @@ function LineChart({ transactions, focusedCategory, currentPeriod }) {
   const upper = forecast.map((v) => v + sigma)
   const lower = forecast.map((v) => v - sigma)
 
-  /* ---------- Hover Sync Visuals ---------- */
   const dimmed = focusedCategory != null
 
-  /* ---------- Chart Data ---------- */
+  const pad3 = (arr) => [...arr, null, null, null]
+  const incomePadded = pad3(income)
+  const expensesPadded = pad3(expenses)
+  const netPadded = pad3(net)
+
   const data = {
     labels: [...labels, 'F1', 'F2', 'F3'],
     datasets: [
       {
         label: 'Income',
-        data: income,
-        borderColor: '#38bdf8',
-        backgroundColor: 'rgba(56,189,248,0.15)',
+        data: incomePadded,
+        borderColor: dimmed ? 'rgba(56,189,248,0.45)' : '#38bdf8',
+        backgroundColor: dimmed ? 'rgba(56,189,248,0.06)' : 'rgba(56,189,248,0.15)',
         borderWidth: 2,
         tension: 0.35,
         pointRadius: 3,
-        opacity: dimmed ? 0.35 : 1,
       },
       {
         label: 'Expenses',
-        data: expenses,
-        borderColor: '#f472b6',
-        backgroundColor: 'rgba(244,114,182,0.15)',
+        data: expensesPadded,
+        borderColor: dimmed ? 'rgba(244,114,182,0.45)' : '#f472b6',
+        backgroundColor: dimmed ? 'rgba(244,114,182,0.06)' : 'rgba(244,114,182,0.15)',
         borderWidth: 2,
         tension: 0.35,
         pointRadius: 3,
       },
       {
         label: 'Net',
-        data: net,
-        borderColor: '#22c55e',
+        data: netPadded,
+        borderColor: dimmed ? 'rgba(34,197,94,0.55)' : '#22c55e',
         borderWidth: 3,
         tension: 0.3,
         pointRadius: 4,
@@ -167,7 +162,6 @@ function LineChart({ transactions, focusedCategory, currentPeriod }) {
     ],
   }
 
-  /* ---------- Options ---------- */
   const options = {
     responsive: true,
     interaction: { mode: 'nearest', intersect: false },
@@ -176,9 +170,7 @@ function LineChart({ transactions, focusedCategory, currentPeriod }) {
         position: 'bottom',
         labels: {
           color: '#e5e7eb',
-          filter: (item) =>
-            item.text !== 'Confidence Band' &&
-            item.datasetIndex !== 5,
+          filter: (item) => item.text !== 'Confidence Band' && item.datasetIndex !== 5,
         },
       },
       tooltip: {
@@ -195,10 +187,7 @@ function LineChart({ transactions, focusedCategory, currentPeriod }) {
     },
     scales: {
       y: {
-        ticks: {
-          color: '#d1d5db',
-          callback: (v) => formatAmount(v),
-        },
+        ticks: { color: '#d1d5db', callback: (v) => formatAmount(v) },
         grid: { color: 'rgba(255,255,255,0.08)' },
       },
       x: {

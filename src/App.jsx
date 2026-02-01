@@ -15,9 +15,6 @@ import YearComparison from './components/YearComparison'
 /* Date Helpers */
 /* -------------------------------------------------- */
 
-const monthKeyFromDate = (date) =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-
 const getMonthRangeFromDate = (date) => {
   const start = new Date(date.getFullYear(), date.getMonth(), 1)
   start.setHours(0, 0, 0, 0)
@@ -56,13 +53,34 @@ const getPeriodLabel = (mode, date) => {
 }
 
 /* -------------------------------------------------- */
+/* Transaction LocalStorage Normalization */
+/* -------------------------------------------------- */
+const normalizeTransactions = (raw) => {
+  if (!Array.isArray(raw)) return []
+
+  return raw
+    .filter((t) => t && typeof t === 'object')
+    .map((t) => {
+      const amount = Number(t.amount)
+      const type = t.type === 'income' || t.type === 'expense' ? t.type : 'expense'
+      const date = t.date ? new Date(t.date) : new Date()
+      return {
+        id: t.id ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        description: typeof t.description === 'string' ? t.description : '',
+        category: typeof t.category === 'string' ? t.category : 'Other',
+        type,
+        amount: Number.isFinite(amount) ? amount : 0,
+        date: Number.isFinite(date.getTime()) ? date.toISOString() : new Date().toISOString(),
+      }
+    })
+}
+
+/* -------------------------------------------------- */
 /* Budget LocalStorage Migration */
 /* -------------------------------------------------- */
-/**
- * Supports both:
- * 1) Old format: { Housing: 900, Food: 300 }
- * 2) New format: { "2026-01": { Housing: 900 } }
- */
+const monthKeyFromDate = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+
 const normalizeBudgets = (raw) => {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
 
@@ -81,7 +99,6 @@ const normalizeBudgets = (raw) => {
   const isOldFormat = values.every((v) => typeof v === 'number')
   if (!isOldFormat) return {}
 
-  // migrate old format into current month
   const key = monthKeyFromDate(new Date())
   return { [key]: raw }
 }
@@ -89,12 +106,7 @@ const normalizeBudgets = (raw) => {
 /* -------------------------------------------------- */
 /* Debug Overlay */
 /* -------------------------------------------------- */
-function DebugOverlay({
-  comparisonMode,
-  currentPeriod,
-  previousPeriod,
-  transactions,
-}) {
+function DebugOverlay({ comparisonMode, currentPeriod, previousPeriod, transactions }) {
   const [isVisible, setIsVisible] = useState(false)
 
   if (import.meta.env.PROD) return null
@@ -136,7 +148,12 @@ function DebugOverlay({
 function Dashboard() {
   const [transactions, setTransactions] = useState(() => {
     const saved = localStorage.getItem('transactions')
-    return saved ? JSON.parse(saved) : []
+    try {
+      const parsed = saved ? JSON.parse(saved) : []
+      return normalizeTransactions(parsed)
+    } catch {
+      return []
+    }
   })
 
   const [budgets, setBudgets] = useState(() => {
@@ -148,10 +165,8 @@ function Dashboard() {
   const [comparisonMode, setComparisonMode] = useState('none')
   const [focusedCategory, setFocusedCategory] = useState(null)
 
-  // controls which month/year is being viewed
   const [viewDate, setViewDate] = useState(new Date())
 
-  /* ---------- Persistence ---------- */
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(transactions))
   }, [transactions])
@@ -160,11 +175,8 @@ function Dashboard() {
     localStorage.setItem('budgets', JSON.stringify(budgets))
   }, [budgets])
 
-  /* ---------- Periods ---------- */
-  // Key fix: even when comparisonMode = 'none', we still set a usable month range
   const currentPeriod = useMemo(() => {
     if (comparisonMode === 'year') return getYearRangeFromDate(viewDate)
-    // month OR none => month range (so budgets work always)
     return getMonthRangeFromDate(viewDate)
   }, [comparisonMode, viewDate])
 
@@ -174,32 +186,44 @@ function Dashboard() {
       prev.setMonth(prev.getMonth() - 1)
       return getMonthRangeFromDate(prev)
     }
-
     if (comparisonMode === 'year') {
       const prev = new Date(viewDate)
       prev.setFullYear(prev.getFullYear() - 1)
       return getYearRangeFromDate(prev)
     }
-
     return null
   }, [comparisonMode, viewDate])
 
   const periodLabel = useMemo(() => {
     if (comparisonMode === 'year') return getPeriodLabel('year', viewDate)
-    // month OR none => show month label
     return getPeriodLabel('month', viewDate)
   }, [comparisonMode, viewDate])
 
   /* ---------- CRUD ---------- */
-  const addTransaction = (t) => setTransactions([t, ...transactions])
+  const addTransaction = (t) => {
+    const next = normalizeTransactions([t])[0]
+    setTransactions((prev) => [next, ...prev])
+  }
 
   const deleteTransaction = (id) =>
-    setTransactions(transactions.filter((t) => t.id !== id))
+    setTransactions((prev) => prev.filter((t) => t.id !== id))
 
-  const editTransaction = (id, updated) =>
-    setTransactions(transactions.map((t) => (t.id === id ? { ...updated, id } : t)))
+  const editTransaction = (id, updated) => {
+    const normalized = normalizeTransactions([{ ...updated, id }])[0]
+    setTransactions((prev) => prev.map((t) => (t.id === id ? normalized : t)))
+  }
 
-  /* ---------- Export ---------- */
+  // NEW: Duplicate (creates a new transaction with a new id)
+  const duplicateTransaction = (t) => {
+    const clone = {
+      ...t,
+      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      // keep same date by default; you can change this to "today" if preferred
+      date: t.date,
+    }
+    addTransaction(clone)
+  }
+
   const exportToCSV = () => {
     if (!transactions.length) return alert('No transactions')
 
@@ -208,7 +232,7 @@ function Dashboard() {
       t.description,
       t.category,
       t.type,
-      t.amount.toFixed(2),
+      Number(t.amount).toFixed(2),
     ])
 
     const csv = [
@@ -228,12 +252,9 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-neutral-950 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <header className="mb-12 text-center">
           <h1 className="text-5xl font-semibold text-white">Finance</h1>
-          <p className="text-neutral-400 mt-2">
-            Track your income and expenses
-          </p>
+          <p className="text-neutral-400 mt-2">Track your income and expenses</p>
 
           <div className="flex justify-center gap-3 mt-6">
             <CurrencySelector />
@@ -248,12 +269,10 @@ function Dashboard() {
           </div>
         </header>
 
-        {/* Summary */}
         <section className="mb-12 sm:mb-16">
           <Summary transactions={transactions} />
         </section>
 
-        {/* Comparison Controls */}
         <section className="mb-6 flex flex-col items-center gap-3">
           <div className="bg-neutral-800 rounded-full p-1 flex gap-1 text-sm">
             {[
@@ -275,7 +294,6 @@ function Dashboard() {
             ))}
           </div>
 
-          {/* Month navigation for month-based views (none/month) */}
           {comparisonMode !== 'year' && (
             <div className="flex items-center gap-4 text-sm text-neutral-300">
               <button
@@ -303,7 +321,6 @@ function Dashboard() {
           )}
         </section>
 
-        {/* Charts */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-12 sm:mb-16">
           <PieChart
             transactions={transactions}
@@ -319,7 +336,6 @@ function Dashboard() {
           />
         </section>
 
-        {/* Budget */}
         <section className="mb-12 sm:mb-16">
           <BudgetManager
             budgets={budgets}
@@ -330,12 +346,10 @@ function Dashboard() {
           />
         </section>
 
-        {/* Year Comparison */}
         <section className="mb-12 sm:mb-16">
           <YearComparison transactions={transactions} />
         </section>
 
-        {/* Transactions */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-12">
           <TransactionForm onAddTransaction={addTransaction} />
 
@@ -343,6 +357,7 @@ function Dashboard() {
             transactions={transactions}
             onDeleteTransaction={deleteTransaction}
             onEditTransaction={editTransaction}
+            onDuplicateTransaction={duplicateTransaction}  // NEW
             onHoverCategory={setFocusedCategory}
           />
         </section>
@@ -358,9 +373,6 @@ function Dashboard() {
   )
 }
 
-/* -------------------------------------------------- */
-/* App */
-/* -------------------------------------------------- */
 function App() {
   return (
     <BrowserRouter>
@@ -370,7 +382,6 @@ function App() {
           <Route path="/privacy" element={<PrivacyPolicy />} />
         </Routes>
 
-        {/* Footer */}
         <footer className="py-10 text-center border-t border-neutral-800">
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
