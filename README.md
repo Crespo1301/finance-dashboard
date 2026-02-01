@@ -8,25 +8,31 @@ A responsive React application for tracking income, expenses, and budgets with r
 
 ## Overview
 
-Personal Finance Dashboard is a client-side financial tracking application built with React 19 and Chart.js. It provides intuitive expense categorization, budget management with progress tracking, and visual analytics including pie charts and line graphs. All data persists locally in the browser using localStorage, ensuring complete privacy with no server-side data transmission.
+Personal Finance Dashboard is a client-side financial tracking application built with React 19 and Chart.js. It provides intuitive expense categorization, period-aware budget management with forecasted overspend alerts, and visual analytics including pie charts and line graphs with cross-component interaction. All data persists locally in the browser using localStorage, ensuring complete privacy with no server-side data transmission.
 
 ## Features
 
 **Transaction Management**
-- Add, edit, and delete income/expense entries
+- Add, edit, delete, and duplicate income/expense entries
+- Inline editing with full field access (description, amount, category, date, type)
 - Categorize transactions across 12 predefined categories
 - Search and filter by description, category, or transaction type
+- Hover a transaction to highlight its category across all charts
 - Export transaction history to CSV
 
 **Budget Tracking**
-- Set monthly spending limits by category
-- Visual progress bars with color-coded alerts (green/yellow/red)
-- Month-by-month budget navigation
-- Automatic migration from legacy budget format
+- Monthly budget isolation with per-month spending limits keyed by `YYYY-MM`
+- Visual progress bars with three-state alerts (under, exactly met, over budget)
+- Forecasted end-of-month spend based on daily rate calculation
+- Budget locking for past months to prevent retroactive edits
+- Copy previous month's budgets into a new month with one click
+- Create, edit, and remove individual category budgets
+- Category focus highlighting synchronized with charts
 
 **Data Visualization**
 - Interactive pie chart with category breakdown and period comparison
 - Line chart displaying income, expenses, and net trends over time
+- Category focus dimming across charts when a category is selected
 - Linear regression forecasting with confidence bands
 - Year-over-year comparison table with change indicators
 
@@ -38,6 +44,12 @@ Personal Finance Dashboard is a client-side financial tracking application built
 - Compare current vs. previous month
 - Compare current vs. previous year
 - Navigate between months with arrow controls
+
+**Data Integrity**
+- Automatic validation and sanitization of transactions on load
+- Graceful recovery from malformed localStorage data
+- Midday timestamp strategy to prevent timezone-induced date shifts
+- Legacy budget format detection and automatic migration
 
 ## Tech Stack
 
@@ -82,18 +94,18 @@ npm run preview
 finance-dashboard/
 ├── src/
 │   ├── components/
-│   │   ├── BudgetManager.jsx     # Monthly budget tracking
+│   │   ├── BudgetManager.jsx     # Monthly budget tracking with locking and forecasting
 │   │   ├── CurrencySelector.jsx  # Currency dropdown
-│   │   ├── LineChart.jsx         # Trends + forecasting
-│   │   ├── PieChart.jsx          # Category breakdown
+│   │   ├── LineChart.jsx         # Trends, forecasting, and focus dimming
+│   │   ├── PieChart.jsx          # Category breakdown with period comparison
 │   │   ├── PrivacyPolicy.jsx     # Privacy page
 │   │   ├── Summary.jsx           # Income/expense/balance cards
 │   │   ├── TransactionForm.jsx   # Add transaction form
-│   │   ├── TransactionList.jsx   # Filterable transaction list
+│   │   ├── TransactionList.jsx   # Filterable list with duplicate and hover sync
 │   │   └── YearComparison.jsx    # Year-over-year table
 │   ├── context/
 │   │   └── CurrencyContext.jsx   # Global currency state
-│   ├── App.jsx                   # Main dashboard + routing
+│   ├── App.jsx                   # Main dashboard, routing, and data normalization
 │   ├── main.jsx                  # Entry point
 │   └── index.css                 # Tailwind imports + base styles
 ├── public/
@@ -104,10 +116,11 @@ finance-dashboard/
 ## Usage
 
 1. **Add Transactions**: Select income or expense, enter details, choose a category, and submit.
-2. **Set Budgets**: Navigate to the Budgets section, select a category, enter a limit, and click Set.
-3. **View Analytics**: The pie chart shows expense distribution; the line chart displays monthly trends with forecasting.
-4. **Compare Periods**: Use the comparison toggle to view month-over-month or year-over-year changes.
-5. **Export Data**: Click "Export CSV" to download your transaction history.
+2. **Duplicate Transactions**: Hover any transaction and click the copy icon to clone it.
+3. **Set Budgets**: Navigate to the Budgets section, select a category, enter a limit, and click Set Budget.
+4. **View Analytics**: The pie chart shows expense distribution; the line chart displays monthly trends with forecasting.
+5. **Compare Periods**: Use the comparison toggle to view month-over-month or year-over-year changes.
+6. **Export Data**: Click "Export CSV" to download your transaction history.
 
 Data persists automatically in your browser's localStorage.
 
@@ -119,9 +132,21 @@ Data persists automatically in your browser's localStorage.
 
 **Budget Key Format**: Budgets are stored by month key (`"2026-01"`) to support month-specific limits with automatic migration from legacy flat formats.
 
+**Data Normalization**: All transactions pass through `normalizeTransactions()` on load and on every add/edit operation, validating types, amounts, dates, and IDs to prevent rendering failures from malformed data.
+
 **Currency Context**: A React Context provides global access to currency formatting and symbol retrieval without prop drilling.
 
+**Cross-Component Sync**: A shared `focusedCategory` state propagates from PieChart clicks and TransactionList hovers to dim non-relevant data across LineChart and BudgetManager.
+
 ## Changelog
+
+### v2.2 (February 2026)
+- Rebuilt BudgetManager with monthly isolation, locking, forecasted overspend, and copy-forward
+- Added one-click transaction duplication
+- Expanded inline editing to include date and type fields
+- Added hover-to-highlight synchronization between TransactionList and charts
+- Added transaction and budget normalization for malformed localStorage recovery
+- Adopted functional state updates and centralized data validation
 
 ### v2.1 (January 29, 2026)
 - Fixed date range comparison bug causing silent data exclusion
@@ -146,11 +171,7 @@ Data persists automatically in your browser's localStorage.
 
 ## Roadmap
 
-- [ ] Recurring transactions
-- [ ] Data backup/restore (JSON export/import)
-- [ ] Receipt image uploads
-- [ ] Financial insights and recommendations
-- [ ] Dark/light theme toggle
+- [ ] Create User Accounts & Profiles 
 
 ## Contributing
 
