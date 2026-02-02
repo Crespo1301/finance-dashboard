@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 import TransactionForm from './components/TransactionForm'
 import TransactionList from './components/TransactionList'
@@ -10,10 +10,6 @@ import PrivacyPolicy from './components/PrivacyPolicy'
 import CurrencySelector from './components/CurrencySelector'
 import BudgetManager from './components/BudgetManager'
 import YearComparison from './components/YearComparison'
-
-/* -------------------------------------------------- */
-/* Date Helpers */
-/* -------------------------------------------------- */
 
 const getMonthRangeFromDate = (date) => {
   const start = new Date(date.getFullYear(), date.getMonth(), 1)
@@ -45,70 +41,12 @@ const getPeriodLabel = (mode, date) => {
     })
   }
 
-  if (mode === 'year') {
-    return date.getFullYear().toString()
-  }
-
+  if (mode === 'year') return date.getFullYear().toString()
   return ''
 }
 
-/* -------------------------------------------------- */
-/* Transaction LocalStorage Normalization */
-/* -------------------------------------------------- */
-const normalizeTransactions = (raw) => {
-  if (!Array.isArray(raw)) return []
-
-  return raw
-    .filter((t) => t && typeof t === 'object')
-    .map((t) => {
-      const amount = Number(t.amount)
-      const type = t.type === 'income' || t.type === 'expense' ? t.type : 'expense'
-      const date = t.date ? new Date(t.date) : new Date()
-      return {
-        id: t.id ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-        description: typeof t.description === 'string' ? t.description : '',
-        category: typeof t.category === 'string' ? t.category : 'Other',
-        type,
-        amount: Number.isFinite(amount) ? amount : 0,
-        date: Number.isFinite(date.getTime()) ? date.toISOString() : new Date().toISOString(),
-      }
-    })
-}
-
-/* -------------------------------------------------- */
-/* Budget LocalStorage Migration */
-/* -------------------------------------------------- */
-const monthKeyFromDate = (date) =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-
-const normalizeBudgets = (raw) => {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
-
-  const values = Object.values(raw)
-  if (values.length === 0) return {}
-
-  const firstVal = values[0]
-
-  const isNewFormat =
-    firstVal &&
-    typeof firstVal === 'object' &&
-    !Array.isArray(firstVal)
-
-  if (isNewFormat) return raw
-
-  const isOldFormat = values.every((v) => typeof v === 'number')
-  if (!isOldFormat) return {}
-
-  const key = monthKeyFromDate(new Date())
-  return { [key]: raw }
-}
-
-/* -------------------------------------------------- */
-/* Debug Overlay */
-/* -------------------------------------------------- */
 function DebugOverlay({ comparisonMode, currentPeriod, previousPeriod, transactions }) {
   const [isVisible, setIsVisible] = useState(false)
-
   if (import.meta.env.PROD) return null
 
   const countInRange = (range) =>
@@ -124,7 +62,7 @@ function DebugOverlay({ comparisonMode, currentPeriod, previousPeriod, transacti
       <button
         onClick={() => setIsVisible((v) => !v)}
         className="fixed bottom-4 right-4 z-50 w-10 h-10 bg-violet-600 text-white rounded-full"
-        title="Toggle Debug"
+        title="Toggle Debug Overlay"
       >
         ⚙
       </button>
@@ -142,29 +80,19 @@ function DebugOverlay({ comparisonMode, currentPeriod, previousPeriod, transacti
   )
 }
 
-/* -------------------------------------------------- */
-/* Dashboard */
-/* -------------------------------------------------- */
 function Dashboard() {
   const [transactions, setTransactions] = useState(() => {
     const saved = localStorage.getItem('transactions')
-    try {
-      const parsed = saved ? JSON.parse(saved) : []
-      return normalizeTransactions(parsed)
-    } catch {
-      return []
-    }
+    return saved ? JSON.parse(saved) : []
   })
 
   const [budgets, setBudgets] = useState(() => {
     const saved = localStorage.getItem('budgets')
-    const parsed = saved ? JSON.parse(saved) : {}
-    return normalizeBudgets(parsed)
+    return saved ? JSON.parse(saved) : {}
   })
 
   const [comparisonMode, setComparisonMode] = useState('none')
   const [focusedCategory, setFocusedCategory] = useState(null)
-
   const [viewDate, setViewDate] = useState(new Date())
 
   useEffect(() => {
@@ -177,7 +105,8 @@ function Dashboard() {
 
   const currentPeriod = useMemo(() => {
     if (comparisonMode === 'year') return getYearRangeFromDate(viewDate)
-    return getMonthRangeFromDate(viewDate)
+    if (comparisonMode === 'month') return getMonthRangeFromDate(viewDate)
+    return null
   }, [comparisonMode, viewDate])
 
   const previousPeriod = useMemo(() => {
@@ -186,42 +115,40 @@ function Dashboard() {
       prev.setMonth(prev.getMonth() - 1)
       return getMonthRangeFromDate(prev)
     }
+
     if (comparisonMode === 'year') {
       const prev = new Date(viewDate)
       prev.setFullYear(prev.getFullYear() - 1)
       return getYearRangeFromDate(prev)
     }
+
     return null
   }, [comparisonMode, viewDate])
 
-  const periodLabel = useMemo(() => {
-    if (comparisonMode === 'year') return getPeriodLabel('year', viewDate)
-    return getPeriodLabel('month', viewDate)
-  }, [comparisonMode, viewDate])
+  const periodLabel = getPeriodLabel(comparisonMode, viewDate)
 
-  /* ---------- CRUD ---------- */
-  const addTransaction = (t) => {
-    const next = normalizeTransactions([t])[0]
-    setTransactions((prev) => [next, ...prev])
-  }
+  const addTransaction = (t) => setTransactions((prev) => [t, ...prev])
 
   const deleteTransaction = (id) =>
     setTransactions((prev) => prev.filter((t) => t.id !== id))
 
-  const editTransaction = (id, updated) => {
-    const normalized = normalizeTransactions([{ ...updated, id }])[0]
-    setTransactions((prev) => prev.map((t) => (t.id === id ? normalized : t)))
+  const editTransaction = (id, updated) =>
+    setTransactions((prev) => prev.map((t) => (t.id === id ? { ...updated, id } : t)))
+
+  const duplicateTransaction = (transaction) => {
+    if (!transaction) return null
+    const clone = {
+      ...transaction,
+      id: Date.now() + Math.floor(Math.random() * 100000),
+    }
+    setTransactions((prev) => [clone, ...prev])
+    return clone
   }
 
-  // NEW: Duplicate (creates a new transaction with a new id)
-  const duplicateTransaction = (t) => {
-    const clone = {
-      ...t,
-      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      // keep same date by default; you can change this to "today" if preferred
-      date: t.date,
-    }
-    addTransaction(clone)
+  const bulkDeleteTransactions = (ids) => {
+    if (!Array.isArray(ids) || ids.length === 0) return
+    const idSet = new Set(ids)
+    setTransactions((prev) => prev.filter((t) => !idSet.has(t.id)))
   }
 
   const exportToCSV = () => {
@@ -232,7 +159,7 @@ function Dashboard() {
       t.description,
       t.category,
       t.type,
-      Number(t.amount).toFixed(2),
+      Number(t.amount || 0).toFixed(2),
     ])
 
     const csv = [
@@ -261,7 +188,7 @@ function Dashboard() {
             {transactions.length > 0 && (
               <button
                 onClick={exportToCSV}
-                className="px-5 py-2 rounded-full bg-neutral-800 text-white hover:bg-neutral-700 transition-colors"
+                className="px-5 py-2 rounded-full bg-neutral-800 text-white"
               >
                 Export CSV
               </button>
@@ -273,23 +200,17 @@ function Dashboard() {
           <Summary transactions={transactions} />
         </section>
 
-        <section className="mb-6 flex flex-col items-center gap-3">
+        <section className="mb-6 flex flex-col items-center gap-2">
           <div className="bg-neutral-800 rounded-full p-1 flex gap-1 text-sm">
-            {[
-              { label: 'No Comparison', value: 'none' },
-              { label: 'Month', value: 'month' },
-              { label: 'Year', value: 'year' },
-            ].map((opt) => (
+            {['none', 'month', 'year'].map((mode) => (
               <button
-                key={opt.value}
-                onClick={() => setComparisonMode(opt.value)}
-                className={`px-4 py-1.5 rounded-full transition-colors ${
-                  comparisonMode === opt.value
-                    ? 'bg-white text-black'
-                    : 'text-neutral-300 hover:text-white'
+                key={mode}
+                onClick={() => setComparisonMode(mode)}
+                className={`px-4 py-1.5 rounded-full ${
+                  comparisonMode === mode ? 'bg-white text-black' : 'text-neutral-300'
                 }`}
               >
-                {opt.label}
+                {mode === 'none' ? 'No Comparison' : mode}
               </button>
             ))}
           </div>
@@ -300,20 +221,16 @@ function Dashboard() {
                 onClick={() =>
                   setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))
                 }
-                className="px-2 py-1 rounded hover:bg-neutral-800 transition"
-                aria-label="Previous month"
               >
                 ←
               </button>
 
-              <span className="text-neutral-400">{periodLabel}</span>
+              <span>{periodLabel}</span>
 
               <button
                 onClick={() =>
                   setViewDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))
                 }
-                className="px-2 py-1 rounded hover:bg-neutral-800 transition"
-                aria-label="Next month"
               >
                 →
               </button>
@@ -324,11 +241,10 @@ function Dashboard() {
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-12 sm:mb-16">
           <PieChart
             transactions={transactions}
-            currentPeriod={comparisonMode === 'none' ? null : currentPeriod}
+            currentPeriod={currentPeriod}
             previousPeriod={previousPeriod}
             onCategoryFocus={setFocusedCategory}
           />
-
           <LineChart
             transactions={transactions}
             currentPeriod={currentPeriod}
@@ -346,19 +262,17 @@ function Dashboard() {
           />
         </section>
 
-        <section className="mb-12 sm:mb-16">
-          <YearComparison transactions={transactions} />
-        </section>
+        <YearComparison transactions={transactions} />
 
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-12">
           <TransactionForm onAddTransaction={addTransaction} />
-
           <TransactionList
             transactions={transactions}
             onDeleteTransaction={deleteTransaction}
+            onBulkDeleteTransactions={bulkDeleteTransactions}
             onEditTransaction={editTransaction}
-            onDuplicateTransaction={duplicateTransaction}  // NEW
             onHoverCategory={setFocusedCategory}
+            onDuplicateTransaction={duplicateTransaction}
           />
         </section>
       </div>
@@ -376,39 +290,10 @@ function Dashboard() {
 function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-neutral-950">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-        </Routes>
-
-        <footer className="py-10 text-center border-t border-neutral-800">
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link
-              to="/privacy"
-              className="text-neutral-500 hover:text-white text-sm transition-colors"
-            >
-              Privacy Policy
-            </Link>
-            <Link
-              to="https://github.com/Crespo1301"
-              className="text-neutral-500 hover:text-white text-sm transition-colors"
-            >
-              GitHub Repository
-            </Link>
-            <Link
-              to="https://www.linkedin.com/in/carlos-crespo-46608014a/"
-              className="text-neutral-500 hover:text-white text-sm transition-colors"
-            >
-              LinkedIn Profile
-            </Link>
-          </div>
-
-          <p className="mt-4 text-neutral-500 text-sm">
-            © {new Date().getFullYear()} Carlos Crespo. All rights reserved.
-          </p>
-        </footer>
-      </div>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+      </Routes>
     </BrowserRouter>
   )
 }
