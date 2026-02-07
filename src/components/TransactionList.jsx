@@ -618,6 +618,7 @@ function TransactionList({
           </svg>
           <input
             type="text"
+            aria-label="Search transactions"
             placeholder="Search transactions..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -627,6 +628,7 @@ function TransactionList({
 
         <div className="flex gap-2 flex-wrap items-center">
           <select
+            aria-label="Filter by type"
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
             className="px-3 py-2 bg-neutral-200 border border-neutral-200 rounded-lg text-neutral-900 text-sm appearance-none cursor-pointer focus:outline-none focus:border-violet-500 transition-colors"
@@ -637,6 +639,7 @@ function TransactionList({
           </select>
 
           <select
+            aria-label="Filter by category"
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
             className="px-3 py-2 bg-neutral-200 border border-neutral-200 rounded-lg text-neutral-900 text-sm appearance-none cursor-pointer focus:outline-none focus:border-violet-500 transition-colors"
@@ -668,6 +671,7 @@ function TransactionList({
               <span className="text-xs text-neutral-700">From</span>
               <input
                 type="date"
+                aria-label="Start date filter"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="bg-transparent text-sm text-neutral-900 focus:outline-none"
@@ -678,6 +682,7 @@ function TransactionList({
               <span className="text-xs text-neutral-700">To</span>
               <input
                 type="date"
+                aria-label="End date filter"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 className="bg-transparent text-sm text-neutral-900 focus:outline-none"
@@ -691,6 +696,7 @@ function TransactionList({
             startDate ||
             endDate) && (
             <button
+              aria-label="Clear filters"
               onClick={clearFilters}
               className="px-3 py-2 bg-neutral-200 hover:bg-neutral-400 rounded-lg text-neutral-900 text-sm font-medium transition-colors"
             >

@@ -7,6 +7,7 @@ import Summary from './components/Summary'
 import PieChart from './components/PieChart'
 import LineChart from './components/LineChart'
 import PrivacyPolicy from './components/PrivacyPolicy'
+import Terms from './components/Terms'
 import Settings from './components/Settings'
 import CurrencySelector from './components/CurrencySelector'
 import BudgetManager from './components/BudgetManager'
@@ -462,6 +463,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<Terms />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
     </BrowserRouter>

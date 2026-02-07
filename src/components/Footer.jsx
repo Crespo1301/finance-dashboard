@@ -21,6 +21,10 @@ export default function Footer() {
               Privacy Policy
             </Link>
 
+            <Link to="/terms" className="text-neutral-400 hover:text-neutral-200 transition-colors">
+              Terms
+            </Link>
+
             <Link to="/settings" className="text-neutral-400 hover:text-neutral-200 transition-colors">
               Settings
             </Link>

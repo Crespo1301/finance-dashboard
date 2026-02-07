@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { useCurrency } from '../context/CurrencyContext'
 
 const CATEGORIES = [
@@ -96,6 +96,8 @@ const clampCents = (n) => Math.round(n * 100) / 100
 
 function TransactionForm({ onAddTransaction }) {
   const { formatAmount } = useCurrency()
+
+  const baseId = useId()
 
   const [type, setType] = useState(() => localStorage.getItem('last_tx_type') || 'expense')
   const [category, setCategory] = useState(() => {
@@ -394,6 +396,7 @@ function TransactionForm({ onAddTransaction }) {
               key={opt.value}
               type="button"
               onClick={() => setType(opt.value)}
+              aria-pressed={type === opt.value}
               className={`px-4 py-1.5 rounded-full transition-colors ${
                 type === opt.value ? 'bg-white text-black' : 'text-neutral-300 hover:text-white'
               }`}
@@ -406,8 +409,8 @@ function TransactionForm({ onAddTransaction }) {
 
       <div className="grid grid-cols-1 gap-4">
         <div>
-          <label className="text-xs text-neutral-300">Date</label>
-          <input
+          <label htmlFor={`${baseId}-date`} className="text-xs text-neutral-300">Date</label>
+          <input id={`${baseId}-date`}
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
@@ -416,8 +419,8 @@ function TransactionForm({ onAddTransaction }) {
         </div>
 
         <div>
-          <label className="text-xs text-neutral-300">Description</label>
-          <input
+          <label htmlFor={`${baseId}-description`} className="text-xs text-neutral-300">Description</label>
+          <input id={`${baseId}-description`}
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -429,8 +432,8 @@ function TransactionForm({ onAddTransaction }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-neutral-300">Category</label>
-            <select
+            <label htmlFor={`${baseId}-category`} className="text-xs text-neutral-300">Category</label>
+            <select id={`${baseId}-category`}
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               disabled={splitEnabled}
@@ -450,8 +453,8 @@ function TransactionForm({ onAddTransaction }) {
           </div>
 
           <div>
-            <label className="text-xs text-neutral-300">Total amount</label>
-            <input
+            <label htmlFor={`${baseId}-amount`} className="text-xs text-neutral-300">Total amount</label>
+            <input id={`${baseId}-amount`}
               type="number"
               inputMode="decimal"
               step="0.01"
@@ -477,6 +480,7 @@ function TransactionForm({ onAddTransaction }) {
               <button
                 type="button"
                 onClick={() => enableSplit(!splitEnabled)}
+                aria-pressed={splitEnabled}
                 className={`px-3 py-2 rounded-lg text-sm transition-colors ${
                   splitEnabled ? 'bg-white text-black' : 'bg-neutral-900 text-neutral-300 hover:text-white'
                 }`}
@@ -486,6 +490,7 @@ function TransactionForm({ onAddTransaction }) {
               <button
                 type="button"
                 onClick={() => enableRecurring(!recurringEnabled)}
+                aria-pressed={recurringEnabled}
                 className={`px-3 py-2 rounded-lg text-sm transition-colors ${
                   recurringEnabled ? 'bg-white text-black' : 'bg-neutral-900 text-neutral-300 hover:text-white'
                 }`}
@@ -625,8 +630,8 @@ function TransactionForm({ onAddTransaction }) {
         </div>
 
         <div>
-          <label className="text-xs text-neutral-300">Notes (optional)</label>
-          <textarea
+          <label htmlFor={`${baseId}-notes`} className="text-xs text-neutral-300">Notes (optional)</label>
+          <textarea id={`${baseId}-notes`}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}

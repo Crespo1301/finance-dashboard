@@ -51,6 +51,10 @@ Personal Finance Dashboard is a client-side financial tracking application built
 - Midday timestamp strategy to prevent timezone-induced date shifts
 - Legacy budget format detection and automatic migration
 
+**Privacy & Legal**
+- Privacy Policy page (`/privacy`) and Terms page (`/terms`)
+- Privacy Preferences entry point (for consent/ads readiness)
+
 ## Tech Stack
 
 | Category | Technology |
@@ -117,6 +121,7 @@ finance-dashboard/
 │   │   ├── LineChart.jsx         # Trends, forecasting, and focus dimming
 │   │   ├── PieChart.jsx          # Category breakdown with period comparison
 │   │   ├── PrivacyPolicy.jsx     # Privacy page
+│   │   ├── Terms.jsx             # Terms page
 │   │   ├── Summary.jsx           # Income/expense/balance cards
 │   │   ├── TransactionForm.jsx   # Add transaction form
 │   │   ├── TransactionList.jsx   # Filterable list with duplicate and hover sync
