@@ -7,10 +7,10 @@ import { PrivacyPreferencesProvider } from './context/PrivacyPreferencesContext'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <CurrencyProvider>
-      <PrivacyPreferencesProvider>
-        <App />
-      </PrivacyPreferencesProvider>
-    </CurrencyProvider>
+      <CurrencyProvider>
+        <PrivacyPreferencesProvider>
+          <App />
+        </PrivacyPreferencesProvider>
+      </CurrencyProvider>
   </StrictMode>,
 )

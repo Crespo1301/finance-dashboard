@@ -170,11 +170,18 @@ function TransactionForm({ onAddTransaction }) {
   }, [parsedAmount, splitsSum])
 
   const occurrences = useMemo(() => {
-    if (!recurringEnabled) return [new Date(date)]
+    // IMPORTANT: <input type="date"> gives YYYY-MM-DD.
+    // new Date('YYYY-MM-DD') is interpreted as UTC midnight and can display as the prior day
+    // in negative offsets. Always parse date inputs as LOCAL dates.
+    if (!recurringEnabled) {
+      const d = parseISODateLocal(date)
+      return [d || new Date()]
+    }
     if (recurringFrequency === 'weekly' || recurringFrequency === 'biweekly' || recurringFrequency === 'monthly') {
       return computeOccurrences(date, recurringFrequency, recurringCount)
     }
-    return [new Date(date)]
+    const fallback = parseISODateLocal(date)
+    return [fallback || new Date()]
   }, [recurringEnabled, recurringFrequency, recurringCount, date])
 
   const totalTransactionsToCreate = useMemo(() => {
@@ -192,7 +199,7 @@ function TransactionForm({ onAddTransaction }) {
 
   const errors = useMemo(() => {
     const list = []
-    const d = new Date(date)
+    const d = parseISODateLocal(date)
 
     if (!date || Number.isNaN(d.getTime())) list.push('Choose a valid date.')
     if (!description.trim()) list.push('Enter a description.')
