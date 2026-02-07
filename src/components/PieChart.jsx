@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Pie } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { useCurrency } from '../context/CurrencyContext'
+import { isInRangeInclusive, normalizeTransactions, safeCategory } from '../utils/transactions'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -19,11 +20,6 @@ const COLORS = [
 
 const OTHER_THRESHOLD = 0.05
 
-const isInRange = (date, range) => {
-  if (!range?.start || !range?.end) return true
-  return date >= range.start && date <= range.end
-}
-
 function PieChart({
   transactions = [],
   currentPeriod,
@@ -38,25 +34,24 @@ function PieChart({
   /* ---------- Helpers ---------- */
   const aggregate = (txs) =>
     txs.reduce((acc, t) => {
-      const cat = t.category || 'Other'
+      const cat = safeCategory(t.category)
       acc[cat] = (acc[cat] || 0) + (Number(t.amount) || 0)
       return acc
     }, {})
 
   /* ---------- Expense Sets ---------- */
-  const allExpenses = useMemo(
-    () => transactions.filter((t) => t.type === 'expense'),
-    [transactions]
-  )
+  const normalized = useMemo(() => normalizeTransactions(transactions), [transactions])
+
+  const allExpenses = useMemo(() => normalized.filter((t) => t.type === 'expense'), [normalized])
 
   const periodExpenses = useMemo(() => {
     if (!currentPeriod) return allExpenses
-    return allExpenses.filter((t) => isInRange(new Date(t.date), currentPeriod))
+    return allExpenses.filter((t) => isInRangeInclusive(new Date(t.date), currentPeriod))
   }, [allExpenses, currentPeriod])
 
   const previousExpenses = useMemo(() => {
     if (!previousPeriod) return []
-    return allExpenses.filter((t) => isInRange(new Date(t.date), previousPeriod))
+    return allExpenses.filter((t) => isInRangeInclusive(new Date(t.date), previousPeriod))
   }, [allExpenses, previousPeriod])
 
   const hasCurrentPeriodData = periodExpenses.length > 0

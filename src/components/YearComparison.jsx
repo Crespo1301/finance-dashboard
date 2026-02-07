@@ -465,6 +465,23 @@ function YearComparison({ transactions = [] }) {
   }, [monthly, showCumulativeSavings])
 
   const monthlyOptions = useMemo(() => {
+    // Ensure the y-scale can show negative values when savings/cumulative dips below zero.
+    // Without this, negative savings can get clipped at 0 while cumulative still decreases, which looks like a bug.
+    const yValues = []
+
+    if (monthly) {
+      yValues.push(...monthly.income, ...monthly.expenses, ...monthly.savings)
+      if (showCumulativeSavings) yValues.push(...monthly.cumulativeSavings)
+    }
+
+    const finite = yValues.filter((v) => Number.isFinite(v))
+    const minVal = finite.length ? Math.min(...finite) : 0
+    const maxVal = finite.length ? Math.max(...finite) : 0
+
+    const pad = (v) => (Math.abs(v) < 1 ? 0 : Math.abs(v) * 0.08)
+    const suggestedMin = Math.min(0, minVal - pad(minVal))
+    const suggestedMax = Math.max(0, maxVal + pad(maxVal))
+
     return {
       responsive: true,
       maintainAspectRatio: true,
@@ -491,6 +508,8 @@ function YearComparison({ transactions = [] }) {
       scales: {
         y: {
           stacked: true,
+          suggestedMin,
+          suggestedMax,
           ticks: { color: '#d1d5db', callback: (v) => formatAmount(v) },
           grid: { color: 'rgba(255,255,255,0.08)' },
         },
@@ -501,7 +520,7 @@ function YearComparison({ transactions = [] }) {
         },
       },
     }
-  }, [formatAmount, effectiveSelectedYear])
+  }, [formatAmount, effectiveSelectedYear, monthly, showCumulativeSavings])
 
   /* ---------- True monthly waterfall (income -> expenses -> savings) ---------- */
   const waterfallData = useMemo(() => {

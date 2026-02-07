@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useCurrency } from '../context/CurrencyContext'
+import { formatSafeDate, formatSafeDateTime } from '../utils/transactions'
 
 const CATEGORIES = [
   'Bills',
@@ -167,6 +168,7 @@ function TransactionList({
 
     setPresets(next)
     writePresets(next)
+    window.dispatchEvent(new CustomEvent('transactionListPresetsUpdated'))
     setActivePresetId(id)
     setPresetName('')
   }
@@ -175,9 +177,29 @@ function TransactionList({
     const next = presets.filter((p) => p.id !== id)
     setPresets(next)
     writePresets(next)
+    window.dispatchEvent(new CustomEvent('transactionListPresetsUpdated'))
     if (activePresetId === id) setActivePresetId('')
   }
 
+
+  const updatePreset = () => {
+    if (!activePresetId) return
+    const ix = presets.findIndex((p) => p.id === activePresetId)
+    if (ix < 0) return
+
+    const next = [...presets]
+    next[ix] = {
+      ...next[ix],
+      updatedAt: new Date().toISOString(),
+      filters: currentFiltersSnapshot,
+    }
+
+    setPresets(next)
+    writePresets(next)
+    window.dispatchEvent(new CustomEvent('transactionListPresetsUpdated'))
+    // Notify same-tab listeners (storage event does not fire in same tab)
+    window.dispatchEvent(new CustomEvent('transactionListPresetsUpdated'))
+  }
   const loadPreset = (id) => {
     if (!id) {
       setActivePresetId('')
@@ -350,7 +372,7 @@ function TransactionList({
 
   const exportFilteredCSV = () => {
     const rows = filteredTransactions.map((t) => [
-      new Date(t.date).toLocaleDateString(),
+      formatSafeDate(t.date),
       String(t.description || '').replaceAll(',', ' '),
       String(t.category || 'Other').replaceAll(',', ' '),
       t.type,
@@ -461,20 +483,27 @@ function TransactionList({
     })
   }, [filteredTransactions])
 
-  // If presets were edited in another tab, keep this list fresh
+  // Keep presets in sync across tabs and within this tab when we update localStorage.
   useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key === PRESETS_STORAGE_KEY) {
-        const next = readPresets()
-        setPresets(next)
-        // If active preset was deleted elsewhere, clear selection
-        if (activePresetId && !next.some((p) => p.id === activePresetId)) {
-          setActivePresetId('')
-        }
+    const refresh = () => {
+      const next = readPresets()
+      setPresets(next)
+      if (activePresetId && !next.some((p) => p.id === activePresetId)) {
+        setActivePresetId('')
       }
     }
+
+    const onStorage = (e) => {
+      if (e?.key !== PRESETS_STORAGE_KEY) return
+      refresh()
+    }
+
     window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
+    window.addEventListener('transactionListPresetsUpdated', refresh)
+    return () => {
+      window.removeEventListener('storage', onStorage)
+      window.removeEventListener('transactionListPresetsUpdated', refresh)
+    }
   }, [activePresetId])
 
   if (!transactions || transactions.length === 0) {
@@ -550,6 +579,18 @@ function TransactionList({
               className="px-3 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg text-white text-sm font-medium transition-colors"
             >
               Save preset
+            </button>
+            <button
+              onClick={updatePreset}
+              disabled={!activePresetId}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activePresetId
+                  ? 'bg-neutral-800 hover:bg-neutral-700 text-white'
+                  : 'bg-neutral-800/50 text-neutral-500 cursor-not-allowed'
+              }`}
+              title={activePresetId ? 'Overwrite selected preset with current filters' : 'Select a preset to update'}
+            >
+              Update preset
             </button>
           </div>
         </div>
@@ -799,7 +840,7 @@ function TransactionList({
                             </span>
                           )}
                           <span className="text-xs text-neutral-500">
-                            {new Date(t.date).toLocaleDateString('en-US', {
+                            {formatSafeDate(t.date, 'en-US', {
                               month: 'short',
                               day: 'numeric',
                               year: 'numeric',
@@ -919,7 +960,7 @@ function TransactionList({
                           <div>
                             <div className="text-neutral-500 text-xs">Date</div>
                             <div className="text-neutral-900">
-                              {new Date(t.date).toLocaleString('en-US', {
+                              {formatSafeDateTime(t.date, 'en-US', {
                                 month: 'short',
                                 day: 'numeric',
                                 year: 'numeric',

@@ -11,6 +11,7 @@ import {
   Filler,
 } from 'chart.js'
 import { useCurrency } from '../context/CurrencyContext'
+import { isInRangeInclusive, normalizeTransactions, safeDate, safeNumber } from '../utils/transactions'
 
 ChartJS.register(
   CategoryScale,
@@ -45,29 +46,31 @@ const stdDev = (arr) => {
   )
 }
 
-const isInRange = (date, range) => {
-  if (!range?.start || !range?.end) return true
-  return date >= range.start && date <= range.end
-}
+// isInRangeInclusive is shared in utils
 
 /* ---------------- Component ---------------- */
 function LineChart({ transactions, focusedCategory, currentPeriod }) {
   const { formatAmount } = useCurrency()
   const chartRef = useRef(null)
 
+  const safeTransactions = useMemo(() => normalizeTransactions(transactions), [transactions])
+
   const filteredTransactions = useMemo(() => {
-    if (!currentPeriod) return transactions
-    return transactions.filter((t) => isInRange(new Date(t.date), currentPeriod))
-  }, [transactions, currentPeriod])
+    if (!currentPeriod) return safeTransactions
+    return safeTransactions.filter((t) => {
+      const d = safeDate(t.date)
+      return d ? isInRangeInclusive(d, currentPeriod) : false
+    })
+  }, [safeTransactions, currentPeriod])
 
   const monthly = useMemo(() => {
     return filteredTransactions.reduce((acc, t) => {
-      const d = new Date(t.date)
+      const d = safeDate(t.date)
+      if (!d) return acc
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
       if (!acc[key]) acc[key] = { income: 0, expenses: 0 }
-      t.type === 'income'
-        ? (acc[key].income += Number(t.amount) || 0)
-        : (acc[key].expenses += Number(t.amount) || 0)
+      const amt = safeNumber(t.amount)
+      t.type === 'income' ? (acc[key].income += amt) : (acc[key].expenses += amt)
       return acc
     }, {})
   }, [filteredTransactions])

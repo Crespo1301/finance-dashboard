@@ -6,7 +6,7 @@ const CURRENCIES = {
   USD: { symbol: '$', name: 'US Dollar', rate: 1 },
   EUR: { symbol: '€', name: 'Euro', rate: 0.92 },
   GBP: { symbol: '£', name: 'British Pound', rate: 0.79 },
-  JPY: { symbol: '¥', name: 'Japanese Yen', rate: 149.50 },
+  JPY: { symbol: '¥', name: 'Japanese Yen', rate: 149.5 },
   CAD: { symbol: 'C$', name: 'Canadian Dollar', rate: 1.36 },
   AUD: { symbol: 'A$', name: 'Australian Dollar', rate: 1.53 },
   MXN: { symbol: 'MX$', name: 'Mexican Peso', rate: 17.15 },
@@ -15,39 +15,56 @@ const CURRENCIES = {
 export function CurrencyProvider({ children }) {
   const [currency, setCurrency] = useState(() => {
     const saved = localStorage.getItem('currency')
-    return saved || 'USD'
+    return saved && CURRENCIES[saved] ? saved : 'USD'
   })
 
   useEffect(() => {
-    localStorage.setItem('currency', currency)
+    // Guard against invalid values (corrupted storage/imports)
+    const next = CURRENCIES[currency] ? currency : 'USD'
+    if (next !== currency) setCurrency(next)
+    try {
+      localStorage.setItem('currency', next)
+    } catch {
+      // ignore
+    }
   }, [currency])
 
   const formatAmount = (amount, fromCurrency = 'USD') => {
-    const curr = CURRENCIES[currency]
+    const curr = CURRENCIES[currency] || CURRENCIES.USD
     const fromRate = CURRENCIES[fromCurrency]?.rate || 1
-    const convertedAmount = (amount / fromRate) * curr.rate
-    
-    return `${curr.symbol}${convertedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    const n = Number(amount)
+    const safeAmount = Number.isFinite(n) ? n : 0
+    const convertedAmount = (safeAmount / fromRate) * curr.rate
+
+    return `${curr.symbol}${convertedAmount.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`
   }
 
   const convertAmount = (amount, fromCurrency = 'USD') => {
     const fromRate = CURRENCIES[fromCurrency]?.rate || 1
-    return (amount / fromRate) * CURRENCIES[currency].rate
+    const curr = CURRENCIES[currency] || CURRENCIES.USD
+    const n = Number(amount)
+    const safeAmount = Number.isFinite(n) ? n : 0
+    return (safeAmount / fromRate) * curr.rate
   }
 
   const getSymbol = () => {
-    return CURRENCIES[currency].symbol
+    return (CURRENCIES[currency] || CURRENCIES.USD).symbol
   }
 
   return (
-    <CurrencyContext.Provider value={{ 
-      currency, 
-      setCurrency, 
-      currencies: CURRENCIES,
-      formatAmount,
-      convertAmount,
-      getSymbol
-    }}>
+    <CurrencyContext.Provider
+      value={{
+        currency,
+        setCurrency,
+        currencies: CURRENCIES,
+        formatAmount,
+        convertAmount,
+        getSymbol,
+      }}
+    >
       {children}
     </CurrencyContext.Provider>
   )

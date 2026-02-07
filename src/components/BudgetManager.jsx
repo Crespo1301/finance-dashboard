@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useCurrency } from '../context/CurrencyContext'
+import { normalizeTransactions, safeCategory, safeDate, safeNumber } from '../utils/transactions'
 
 /* -------------------------------------------- */
 /* Helpers */
@@ -58,18 +59,21 @@ function BudgetManager({
   const [newCategory, setNewCategory] = useState(DEFAULT_CATEGORIES[0])
   const [newLimit, setNewLimit] = useState('')
 
+  const safeTransactions = useMemo(() => normalizeTransactions(transactions), [transactions])
+
   const expenses = useMemo(() => {
-    return transactions.filter((t) => {
+    return safeTransactions.filter((t) => {
       if (t.type !== 'expense') return false
-      const d = new Date(t.date)
+      const d = safeDate(t.date)
+      if (!d) return false
       return d >= currentPeriod.start && d <= currentPeriod.end
     })
-  }, [transactions, currentPeriod])
+  }, [safeTransactions, currentPeriod])
 
   const spentByCategory = useMemo(() => {
     return expenses.reduce((acc, t) => {
-      const cat = t.category || 'Other'
-      acc[cat] = (acc[cat] || 0) + (Number(t.amount) || 0)
+      const cat = safeCategory(t.category)
+      acc[cat] = (acc[cat] || 0) + safeNumber(t.amount)
       return acc
     }, {})
   }, [expenses])

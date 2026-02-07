@@ -24,6 +24,20 @@ const todayISO = () => {
   return `${yyyy}-${mm}-${dd}`
 }
 
+const parseISODateLocal = (iso) => {
+  // Parse YYYY-MM-DD from <input type="date"> as a LOCAL date (avoids UTC shifting to the prior day)
+  if (typeof iso !== 'string') return null
+  const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (!match) return null
+  const y = Number(match[1])
+  const mo = Number(match[2])
+  const da = Number(match[3])
+  if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(da)) return null
+  // Use noon local time to avoid DST edge cases
+  const dt = new Date(y, mo - 1, da, 12, 0, 0, 0)
+  return Number.isFinite(dt.getTime()) ? dt : null
+}
+
 const safeNumber = (v) => {
   const n = Number(v)
   return Number.isFinite(n) ? n : NaN
@@ -57,7 +71,7 @@ const addDays = (date, days) => {
 }
 
 const computeOccurrences = (startDateISO, frequency, count) => {
-  const base = new Date(startDateISO)
+  const base = parseISODateLocal(startDateISO) || new Date(startDateISO)
   if (Number.isNaN(base.getTime())) return []
 
   const n = Math.max(1, Math.min(200, Number(count) || 1)) // safety cap

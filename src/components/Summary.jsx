@@ -1,15 +1,18 @@
 import { useCurrency } from '../context/CurrencyContext'
+import { normalizeTransactions, safeNumber } from '../utils/transactions'
 
 function Summary({ transactions }) {
   const { formatAmount } = useCurrency()
 
-  const income = transactions
-    .filter((t) => t.type === 'income')
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
+  const safeTransactions = normalizeTransactions(transactions)
 
-  const expenses = transactions
+  const income = safeTransactions
+    .filter((t) => t.type === 'income')
+    .reduce((sum, t) => sum + safeNumber(t.amount), 0)
+
+  const expenses = safeTransactions
     .filter((t) => t.type === 'expense')
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
+    .reduce((sum, t) => sum + safeNumber(t.amount), 0)
 
   const balance = income - expenses
 
