@@ -12,11 +12,13 @@ import Settings from './components/Settings'
 import CurrencySelector from './components/CurrencySelector'
 import BudgetManager from './components/BudgetManager'
 import YearComparison from './components/YearComparison'
+import LazySection from './components/LazySection'
 import AdsSlot from './components/AdsSlot'
 import Footer from './components/Footer'
 import ConsentBanner from './components/ConsentBanner'
 import PrivacyPreferencesModal from './components/PrivacyPreferencesModal'
 import { useCurrency } from './context/CurrencyContext'
+import { formatSafeDate } from './utils/transactions'
 
 const BACKUP_SCHEMA_VERSION = 2
 
@@ -212,7 +214,7 @@ function Dashboard() {
     if (!transactions.length) return alert('No transactions')
 
     const rows = transactions.map((t) => [
-      new Date(t.date).toLocaleDateString(),
+      formatSafeDate(t.date),
       t.description,
       t.category,
       t.type,
@@ -432,7 +434,9 @@ function Dashboard() {
             </div>
           </section>
 
-          <YearComparison transactions={transactions} />
+          <LazySection minHeight={420} className="mt-4">
+            <YearComparison transactions={transactions} />
+          </LazySection>
 
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-12">
             <TransactionForm onAddTransaction={addTransaction} />

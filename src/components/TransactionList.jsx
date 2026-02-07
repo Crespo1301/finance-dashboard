@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { useCurrency } from '../context/CurrencyContext'
 import { formatSafeDate, formatSafeDateTime } from '../utils/transactions'
 
@@ -110,6 +110,7 @@ function TransactionList({
   })
 
   const [searchTerm, setSearchTerm] = useState('')
+  const deferredSearchTerm = useDeferredValue(searchTerm)
   const [filterCategory, setFilterCategory] = useState('All')
   const [filterType, setFilterType] = useState('All')
   const [sortMode, setSortMode] = useState('date_desc')
@@ -212,7 +213,7 @@ function TransactionList({
   }
 
   const filteredTransactions = useMemo(() => {
-    const s = searchTerm.trim().toLowerCase()
+    const s = deferredSearchTerm.trim().toLowerCase()
 
     const base = (transactions || []).filter((t) => {
       const desc = (t.description || '').toLowerCase()
@@ -255,7 +256,7 @@ function TransactionList({
     }
 
     return sorted
-  }, [transactions, searchTerm, filterCategory, filterType, sortMode, startDate, endDate])
+  }, [transactions, deferredSearchTerm, filterCategory, filterType, sortMode, startDate, endDate])
 
   const filteredTotals = useMemo(() => {
     let income = 0

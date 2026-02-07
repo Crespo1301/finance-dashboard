@@ -12,6 +12,7 @@ import {
   Filler,
 } from 'chart.js'
 import { useCurrency } from '../context/CurrencyContext'
+import { normalizeTransactions } from '../utils/transactions'
 
 ChartJS.register(
   CategoryScale,
@@ -68,6 +69,9 @@ const downloadBlob = (content, filename, mime) => {
 function YearComparison({ transactions = [] }) {
   const { formatAmount } = useCurrency()
 
+  // Normalize once to avoid repeated parsing and to guard against malformed entries.
+  const safeTransactions = useMemo(() => normalizeTransactions(transactions), [transactions])
+
   const mainChartRef = useRef(null)
   const categoryChartRef = useRef(null)
   const monthlyChartRef = useRef(null)
@@ -95,7 +99,7 @@ function YearComparison({ transactions = [] }) {
   const yearly = useMemo(() => {
     const byYear = new Map()
 
-    for (const t of transactions) {
+    for (const t of safeTransactions) {
       const dt = safeDate(t.date)
       if (!dt) continue
       const y = dt.getFullYear()
@@ -131,7 +135,7 @@ function YearComparison({ transactions = [] }) {
     })
 
     return { byYear, years, rows }
-  }, [transactions])
+  }, [safeTransactions])
 
   const allYears = yearly.years
   const rows = yearly.rows
@@ -384,7 +388,7 @@ function YearComparison({ transactions = [] }) {
 
     const byMonth = Array.from({ length: 12 }, () => ({ income: 0, expenses: 0 }))
 
-    for (const t of transactions) {
+    for (const t of safeTransactions) {
       const dt = safeDate(t.date)
       if (!dt) continue
       if (dt.getFullYear() !== effectiveSelectedYear) continue
@@ -624,7 +628,7 @@ function YearComparison({ transactions = [] }) {
     const curTotals = {}
     const baseTotals = {}
 
-    for (const t of transactions) {
+    for (const t of safeTransactions) {
       const dt = safeDate(t.date)
       if (!dt) continue
       if (t.type !== 'expense') continue
@@ -816,7 +820,7 @@ function YearComparison({ transactions = [] }) {
     if (!effectiveSelectedYear) return []
 
     const byCategory = new Map()
-    for (const t of transactions) {
+    for (const t of safeTransactions) {
       const dt = safeDate(t.date)
       if (!dt) continue
       if (dt.getFullYear() !== effectiveSelectedYear) continue

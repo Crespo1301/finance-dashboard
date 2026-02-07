@@ -52,8 +52,8 @@ function PrivacyPolicy() {
           <section className="mb-8">
             <h2 className="text-lg font-semibold text-neutral-200 mb-3">Advertising</h2>
             <p className="text-neutral-400 leading-relaxed">
-              We use Google AdSense to display advertisements. Google may use cookies to 
-              serve ads based on your prior visits to this website or other websites. 
+              This site may display advertisements (for example, via Google). Ad technology may use cookies
+              or similar identifiers to provide, measure, and improve advertising.
               You can opt out of personalized advertising by visiting{' '}
               <a 
                 href="https://www.google.com/settings/ads" 
@@ -63,6 +63,22 @@ function PrivacyPolicy() {
               >
                 Google Ads Settings
               </a>.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-lg font-semibold text-neutral-200 mb-3">Your Choices</h2>
+            <p className="text-neutral-400 leading-relaxed">
+              You can manage optional advertising preferences at any time via the “Privacy Preferences” link in the footer.
+              If you choose not to allow ads, the application will continue to function.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-lg font-semibold text-neutral-200 mb-3">International Users</h2>
+            <p className="text-neutral-400 leading-relaxed">
+              Depending on your location, additional consent requirements may apply before advertising cookies or identifiers
+              are used. We aim to respect regional requirements and provide an accessible way to manage preferences.
             </p>
           </section>
           

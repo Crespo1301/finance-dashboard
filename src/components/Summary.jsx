@@ -1,18 +1,22 @@
+import { useMemo } from 'react'
 import { useCurrency } from '../context/CurrencyContext'
 import { normalizeTransactions, safeNumber } from '../utils/transactions'
 
 function Summary({ transactions }) {
   const { formatAmount } = useCurrency()
 
-  const safeTransactions = normalizeTransactions(transactions)
+  const safeTransactions = useMemo(() => normalizeTransactions(transactions), [transactions])
 
-  const income = safeTransactions
-    .filter((t) => t.type === 'income')
-    .reduce((sum, t) => sum + safeNumber(t.amount), 0)
-
-  const expenses = safeTransactions
-    .filter((t) => t.type === 'expense')
-    .reduce((sum, t) => sum + safeNumber(t.amount), 0)
+  const { income, expenses } = useMemo(() => {
+    let inc = 0
+    let exp = 0
+    for (const t of safeTransactions) {
+      const amt = safeNumber(t.amount)
+      if (t.type === 'income') inc += amt
+      else if (t.type === 'expense') exp += amt
+    }
+    return { income: inc, expenses: exp }
+  }, [safeTransactions])
 
   const balance = income - expenses
 

@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import RestorePreviewModal from './RestorePreviewModal'
+import { formatBytes, getLocalStorageApproxBytes, getLocalStorageKeySizes } from '../utils/storageDiagnostics'
 import {
   buildBackupObject,
   downloadBackupObject,
@@ -45,8 +46,28 @@ export default function Settings() {
       budgetMonths,
       presetCount: Array.isArray(presets) ? presets.length : 0,
       hasUndo: Boolean(localStorage.getItem('backup_before_last_restore_v1')),
+      approxBytes: getLocalStorageApproxBytes(),
+      topKeys: getLocalStorageKeySizes().slice(0, 6),
     }
   }, [])
+
+  const copyDiagnostics = async () => {
+    const payload = {
+      transactions: stats.transactionCount,
+      budgetMonths: stats.budgetMonths,
+      presets: stats.presetCount,
+      approxStorage: formatBytes(stats.approxBytes),
+      topKeys: stats.topKeys.map((k) => ({ key: k.key, size: formatBytes(k.bytes) })),
+      appVersionHint: 'v3.0-prep',
+    }
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(payload, null, 2))
+      alert('Diagnostics copied to clipboard.')
+    } catch {
+      alert('Could not copy diagnostics. Your browser may block clipboard access.')
+    }
+  }
 
   const backupNow = () => {
     const backup = buildBackupObject()
@@ -235,6 +256,53 @@ export default function Settings() {
                 Reset all local data
               </button>
             </div>
+          </section>
+
+          <section className="rounded-2xl bg-neutral-900 border border-neutral-800 p-5">
+            <h2 className="text-lg font-semibold text-white">Diagnostics</h2>
+            <p className="text-sm text-neutral-400 mt-2">
+              Helpful for debugging and support. Shows an estimate of local storage usage on this browser.
+            </p>
+            <div className="mt-3 text-sm text-neutral-400 space-y-1">
+              <div>
+                Approx storage used: <span className="text-neutral-200">{formatBytes(stats.approxBytes)}</span>
+              </div>
+              {stats.topKeys?.length > 0 && (
+                <div className="mt-2">
+                  <div className="text-xs text-neutral-500 mb-1">Largest keys</div>
+                  <ul className="text-xs text-neutral-400 space-y-1">
+                    {stats.topKeys.map((k) => (
+                      <li key={k.key} className="flex items-center justify-between gap-3">
+                        <span className="truncate">{k.key}</span>
+                        <span className="text-neutral-500">{formatBytes(k.bytes)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+            <div className="mt-4">
+              <button
+                onClick={copyDiagnostics}
+                className="px-4 py-2 rounded-xl bg-neutral-800 text-neutral-100 hover:bg-neutral-700 text-sm"
+              >
+                Copy diagnostics
+              </button>
+            </div>
+          </section>
+
+          <section className="rounded-2xl bg-neutral-900 border border-neutral-800 p-5">
+            <h2 className="text-lg font-semibold text-white">AdSense readiness</h2>
+            <p className="text-sm text-neutral-400 mt-2">
+              You already have ad slots reserved (no layout shift) and a consent entry point. Before enabling real ads,
+              make sure your publisher ID and ad slots are configured and your policy pages are complete.
+            </p>
+            <ul className="mt-3 text-sm text-neutral-400 space-y-1 list-disc list-inside">
+              <li>Verify <span className="text-neutral-200">/privacy</span> and <span className="text-neutral-200">/terms</span> are accessible on your domain.</li>
+              <li>Keep <span className="text-neutral-200">ADS_ENABLED=false</span> until you’re approved.</li>
+              <li>When enabling ads, use a certified CMP for EEA/UK/CH traffic.</li>
+              <li>Add <span className="text-neutral-200">ads.txt</span> in your site’s <span className="text-neutral-200">/public</span> directory (recommended).</li>
+            </ul>
           </section>
 
           <section className="rounded-2xl bg-neutral-900 border border-neutral-800 p-5">
