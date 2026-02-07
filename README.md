@@ -92,7 +92,25 @@ npm run preview
 
 ```
 finance-dashboard/
+├── .github/
+├── .vercel/
+│   ├── project.json
+│   ├── README.md
+├── dist/
+│   ├── assests/
+│   │   ├── index-CuT6Rlhk.js   
+│   ├── ads.txt
+│   ├── finance.gif
+│   ├── index.html
+│   ├── vite.svg
+├── Docs/
+├── node_modules/
+├── public/
+│   ├── ads.txt
+│   ├── finance.gif
+│   ├── vite.svg
 ├── src/
+│   ├── assets/
 │   ├── components/
 │   │   ├── BudgetManager.jsx     # Monthly budget tracking with locking and forecasting
 │   │   ├── CurrencySelector.jsx  # Currency dropdown
@@ -103,13 +121,25 @@ finance-dashboard/
 │   │   ├── TransactionForm.jsx   # Add transaction form
 │   │   ├── TransactionList.jsx   # Filterable list with duplicate and hover sync
 │   │   └── YearComparison.jsx    # Year-over-year table
+│   ├── config/
+│   │   ├── adsConfig.js     
 │   ├── context/
 │   │   └── CurrencyContext.jsx   # Global currency state
+│   │   └── PrivacyPreferencesContext.jsx  
+│   ├── docs/
+│   │   └── NONETIZATION.md   
+│   │   └── PRIVACY_AND_CONSENT.md   
+│   ├── utils/
+│   │   └── backup.js
+│   │   └── transactions.js   
 │   ├── App.jsx                   # Main dashboard, routing, and data normalization
 │   ├── main.jsx                  # Entry point
 │   └── index.css                 # Tailwind imports + base styles
-├── public/
+├── eslint.config.js
+├── index.html
 ├── package.json
+├── package-lock.json
+├── README.md
 └── vite.config.js
 ```
 
